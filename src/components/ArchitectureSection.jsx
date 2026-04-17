@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 
 // ─── Layout constants ────────────────────────────────────────────
@@ -142,12 +142,17 @@ function SvgIcon({ type, cx, cy }) {
 
 // ─── Main SVG Diagram ────────────────────────────────────────────
 function ArchDiagram() {
+  const [sel, setSel] = useState(null)
+  const [hov, setHov] = useState(null)
+  const [hovItem, setHovItem] = useState(null) // which checklist row is hovered (0|1|2|null)
+  const toggle = (key) => setSel(p => p === key ? null : key)
+
   // Computed positions
-  const busL   = 250   // left vertical bus x  (NX_L + NW + 24)
-  const hubX   = 270   // hub left edge        (busL + 20)
-  const hubW   = 420   // hub width
-  const hubX2  = hubX + hubW  // = 690
-  const busR   = 710   // right vertical bus x (hubX2 + 20)
+  const busL   = 250   // left vertical bus x
+  const hubX   = 295   // hub left edge — wider gap from bus (was 270)
+  const hubW   = 370   // hub width — smaller (was 420)
+  const hubX2  = hubX + hubW  // = 665
+  const busR   = 710   // right vertical bus x
   const busTop = nodeCY(0)
   const busBot = nodeCY(6)
   const midY   = (busTop + busBot) / 2  // ≈ 283 — hub center line
@@ -272,96 +277,130 @@ function ArchDiagram() {
 
       {/* ─── Left nodes ──────────────────────────────────────── */}
       {LEFT_NODES.map((node, i) => {
-        const y  = NY0 + i * NS
-        const cy = y + NH / 2
-        const isTeal = node.hl === 'teal'
-        const midX = NX_L + NW + (busL - NX_L - NW) / 2  // = 212
+        const y       = NY0 + i * NS
+        const cy      = y + NH / 2
+        const isTeal  = node.hl === 'teal'
+        const midX    = NX_L + NW + (busL - NX_L - NW) / 2
+        const nodeKey = `L:${node.id}`
+        const active  = sel === nodeKey
+        const hovered = hov === nodeKey
         return (
-          <g key={node.id}>
-            {/* Horizontal connection to bus */}
+          <g key={node.id} onClick={() => toggle(nodeKey)} style={{ cursor: 'pointer' }}>
+            {/* Connection line — stays fixed, outside the scale group */}
             <line
               x1={NX_L + NW} y1={cy} x2={busL} y2={cy}
-              stroke="#7c3aed" strokeWidth="1" strokeDasharray="3 2" opacity="0.5"
+              stroke={active ? '#14b8a6' : '#7c3aed'}
+              strokeWidth={active ? 1.8 : 1}
+              strokeDasharray={active ? undefined : '3 2'}
+              opacity={active ? 1 : 0.5}
+              style={{ transition: 'stroke 0.2s, opacity 0.2s, stroke-width 0.2s' }}
             />
-            {/* Connection label */}
             {node.connLabel && (
-              <text
-                x={midX} y={cy - 4}
-                textAnchor="middle"
+              <text x={midX} y={cy - 4} textAnchor="middle"
                 fontFamily="'JetBrains Mono', 'Courier New', monospace"
-                fontSize="6" fill={isTeal ? '#0d9488' : '#a78bfa'}
-              >
+                fontSize="6" fill={active ? '#0d9488' : isTeal ? '#0d9488' : '#a78bfa'}>
                 {node.connLabel}
               </text>
             )}
-            {/* Node card */}
-            <rect
-              x={NX_L} y={y} width={NW} height={NH} rx="7"
-              fill={isTeal ? 'rgba(13,148,136,0.08)' : '#ffffff'}
-              stroke={isTeal ? '#0d9488' : '#d4d4d8'}
-              strokeWidth={isTeal ? '1.5' : '1'}
-              filter={isTeal ? 'url(#glow-teal)' : undefined}
-            />
-            {/* Icon */}
-            <SvgIcon type={node.type} cx={NX_L + 22} cy={cy}/>
-            {/* Label */}
-            <text
-              x={NX_L + 40} y={cy + 4.5}
-              fontFamily="Inter, system-ui, sans-serif"
-              fontSize="9.5"
-              fontWeight={isTeal ? '600' : '500'}
-              fill={isTeal ? '#0d7a70' : '#52525b'}
+            {/* Card group — scales on hover, origin = card center */}
+            <g
+              onMouseEnter={() => setHov(nodeKey)}
+              onMouseLeave={() => setHov(null)}
+              style={{
+                transform: hovered ? 'scale(1.04)' : 'scale(1)',
+                transformBox: 'fill-box',
+                transformOrigin: 'center',
+                transition: 'transform 0.15s ease',
+              }}
             >
-              {node.label}
-            </text>
+              <rect
+                x={NX_L} y={y} width={NW} height={NH} rx="7"
+                fill={
+                  active
+                    ? (isTeal ? 'rgba(13,148,136,0.24)' : 'rgba(13,148,136,0.13)')
+                    : isTeal ? 'rgba(13,148,136,0.08)' : '#ffffff'
+                }
+                stroke={active || isTeal ? '#0d9488' : '#d4d4d8'}
+                strokeWidth={active ? (isTeal ? 2.5 : 2) : isTeal ? 1.5 : 1}
+                filter={(active || isTeal) ? 'url(#glow-teal)' : undefined}
+                style={{ transition: 'fill 0.2s, stroke-width 0.2s' }}
+              />
+              <SvgIcon type={node.type} cx={NX_L + 22} cy={cy}/>
+              <text
+                x={NX_L + 40} y={cy + 4.5}
+                fontFamily="Inter, system-ui, sans-serif"
+                fontSize="9.5"
+                fontWeight={active || isTeal ? '600' : '500'}
+                fill={active ? '#0a6b62' : isTeal ? '#0d7a70' : '#52525b'}
+              >
+                {node.label}
+              </text>
+            </g>
           </g>
         )
       })}
 
       {/* ─── Right nodes ─────────────────────────────────────── */}
       {RIGHT_NODES.map((node, i) => {
-        const y  = NY0 + i * NS
-        const cy = y + NH / 2
-        const isOrg = node.hl === 'orange'
-        const midX = busR + (NX_R - busR) / 2  // = 748
+        const y       = NY0 + i * NS
+        const cy      = y + NH / 2
+        const isOrg   = node.hl === 'orange'
+        const midX    = busR + (NX_R - busR) / 2
+        const nodeKey = `R:${node.id}`
+        const active  = sel === nodeKey
+        const hovered = hov === nodeKey
         return (
-          <g key={node.id}>
-            {/* Bus to node connection */}
+          <g key={node.id} onClick={() => toggle(nodeKey)} style={{ cursor: 'pointer' }}>
+            {/* Connection line — outside scale group */}
             <line
               x1={busR} y1={cy} x2={NX_R} y2={cy}
-              stroke="#7c3aed" strokeWidth="1" strokeDasharray="3 2" opacity="0.5"
+              stroke={active ? (isOrg ? '#f97316' : '#14b8a6') : '#7c3aed'}
+              strokeWidth={active ? 1.8 : 1}
+              strokeDasharray={active ? undefined : '3 2'}
+              opacity={active ? 1 : 0.5}
+              style={{ transition: 'stroke 0.2s, opacity 0.2s, stroke-width 0.2s' }}
             />
-            {/* Connection label */}
             {node.connLabel && (
-              <text
-                x={midX} y={cy - 4}
-                textAnchor="middle"
+              <text x={midX} y={cy - 4} textAnchor="middle"
                 fontFamily="'JetBrains Mono', 'Courier New', monospace"
-                fontSize="6" fill={isOrg ? '#f97316' : '#a78bfa'}
-              >
+                fontSize="6" fill={active ? (isOrg ? '#f97316' : '#0d9488') : isOrg ? '#f97316' : '#a78bfa'}>
                 {node.connLabel}
               </text>
             )}
-            {/* Node card */}
-            <rect
-              x={NX_R} y={y} width={NW} height={NH} rx="7"
-              fill={isOrg ? 'rgba(249,115,22,0.07)' : '#ffffff'}
-              stroke={isOrg ? '#f97316' : '#d4d4d8'}
-              strokeWidth={isOrg ? '1.5' : '1'}
-              filter={isOrg ? 'url(#glow-orange)' : undefined}
-            />
-            {/* Icon */}
-            <SvgIcon type={node.type} cx={NX_R + 22} cy={cy}/>
-            {/* Label */}
-            <text
-              x={NX_R + 40} y={cy + 4.5}
-              fontFamily="Inter, system-ui, sans-serif"
-              fontSize="9.5"
-              fontWeight={isOrg ? '600' : '500'}
-              fill={isOrg ? '#c2410c' : '#52525b'}
+            {/* Card group — scales on hover */}
+            <g
+              onMouseEnter={() => setHov(nodeKey)}
+              onMouseLeave={() => setHov(null)}
+              style={{
+                transform: hovered ? 'scale(1.04)' : 'scale(1)',
+                transformBox: 'fill-box',
+                transformOrigin: 'center',
+                transition: 'transform 0.15s ease',
+              }}
             >
-              {node.label}
-            </text>
+              <rect
+                x={NX_R} y={y} width={NW} height={NH} rx="7"
+                fill={
+                  active
+                    ? (isOrg ? 'rgba(249,115,22,0.24)' : 'rgba(13,148,136,0.13)')
+                    : isOrg ? 'rgba(249,115,22,0.07)' : '#ffffff'
+                }
+                stroke={active ? (isOrg ? '#f97316' : '#0d9488') : isOrg ? '#f97316' : '#d4d4d8'}
+                strokeWidth={active ? (isOrg ? 2.5 : 2) : isOrg ? 1.5 : 1}
+                filter={(active || isOrg) ? `url(#glow-${isOrg ? 'orange' : 'teal'})` : undefined}
+                style={{ transition: 'fill 0.2s, stroke-width 0.2s' }}
+              />
+              <SvgIcon type={node.type} cx={NX_R + 22} cy={cy}/>
+              <text
+                x={NX_R + 40} y={cy + 4.5}
+                fontFamily="Inter, system-ui, sans-serif"
+                fontSize="9.5"
+                fontWeight={active || isOrg ? '600' : '500'}
+                fill={active ? (isOrg ? '#9a3412' : '#0a6b62') : isOrg ? '#c2410c' : '#52525b'}
+              >
+                {node.label}
+              </text>
+            </g>
           </g>
         )
       })}
@@ -375,23 +414,44 @@ function ArchDiagram() {
         const headerH = 72
         const bodyY = hy + headerH
 
-        // Checklist items (icon cx relative to hub left, text starts at icon+24)
         const checkItems = [
-          { icon: 'neural',    text: 'Orchestrate Multi-Agent Systems'                         },
-          { icon: 'logic',     text: 'Handle Complex Conditional Logic & Fallbacks'            },
-          { icon: 'crossplatf',text: 'Execute Cross-Platform Tasks and Verifications'          },
+          { icon: 'neural',    text: 'Orchestrate Multi-Agent Systems'              },
+          { icon: 'logic',     text: 'Handle Complex Conditional Logic & Fallbacks' },
+          { icon: 'crossplatf',text: 'Execute Cross-Platform Tasks and Verifications'},
         ]
-        const bodyH = hh - headerH
+        const bodyH    = hh - headerH
         const itemStep = bodyH / (checkItems.length + 0.5)
 
+        const hubActive   = sel === 'hub'
+        const hubHovered  = hov === 'hub'
+
         return (
+          <g
+            onClick={() => toggle('hub')}
+            onMouseEnter={() => setHov('hub')}
+            onMouseLeave={() => setHov(null)}
+            style={{
+              cursor: 'pointer',
+              transform: hubHovered ? 'scale(1.018)' : 'scale(1)',
+              transformBox: 'fill-box',
+              transformOrigin: 'center',
+              transition: 'transform 0.2s ease',
+            }}
+          >
           <g filter="url(#glow-hub)">
-            {/* Hub body background — full rounded rect so corners are correct */}
+            {/* Selection halo */}
+            {hubActive && (
+              <rect x={hx - 6} y={hy - 6} width={hw + 12} height={hh + 12} rx="19"
+                fill="none" stroke="#14b8a6" strokeWidth="1.5" opacity="0.45"
+                strokeDasharray="8 4"
+              />
+            )}
+
+            {/* Hub body */}
             <rect x={hx} y={hy} width={hw} height={hh} rx="14"
               fill="url(#hub-body-bg)"/>
 
-            {/* Header background — clipPath extends past headerH so bottom
-                rounded corners of the rx rect are hidden; only top corners show */}
+            {/* Header clip */}
             <clipPath id="hub-header-clip">
               <rect x={hx} y={hy} width={hw} height={headerH + 20} rx="14"/>
             </clipPath>
@@ -402,13 +462,14 @@ function ArchDiagram() {
             <line x1={hx} y1={hy + headerH} x2={hx + hw} y2={hy + headerH}
               stroke="#0d9488" strokeWidth="1" opacity="0.5"/>
 
-            {/* Hub outer border — on top so it's always visible */}
+            {/* Outer border */}
             <rect x={hx} y={hy} width={hw} height={hh} rx="14"
-              fill="none" stroke="#0d9488" strokeWidth="1.5" opacity="0.6"/>
+              fill="none" stroke="#0d9488"
+              strokeWidth={hubActive ? 2.5 : 1.5}
+              opacity={hubActive ? 1 : 0.6}
+              style={{ transition: 'stroke-width 0.2s, opacity 0.2s' }}/>
 
-            {/* Network icon */}
-       
-            {/* "Mole AI" title in header */}
+            {/* Header text */}
             <text x={hx + 20} y={hy + 33}
               fontFamily="Inter, system-ui, sans-serif"
               fontSize="16" fontWeight="800" fill="white" letterSpacing="-0.3">
@@ -420,7 +481,7 @@ function ArchDiagram() {
               Agentic Orchestration Engine
             </text>
 
-            {/* "AI" badge right side of header */}
+            {/* AI badge */}
             <rect x={hx + hw - 48} y={hy + 18} width="32" height="32" rx="8"
               fill="rgba(0,0,0,0.25)" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
             <text x={hx + hw - 32} y={hy + 40}
@@ -432,71 +493,74 @@ function ArchDiagram() {
 
             {/* ── Checklist items ── */}
             {checkItems.map(({ icon, text }, idx) => {
-              const iy = bodyY + itemStep * (idx + 0.6)
+              const iy      = bodyY + itemStep * (idx + 0.6)
+              const ix      = hx + 30
+              const itemHov = hovItem === idx
+              const ic      = itemHov ? '#f97316' : '#14b8a6'   // icon stroke color
+              const circleFill   = itemHov ? 'rgba(249,115,22,0.12)' : 'rgba(13,148,136,0.08)'
+              const circleStroke = itemHov ? '#f97316' : '#0d9488'
+              const textFill     = itemHov ? '#ea580c' : '#3f3f46'
+              const textWeight   = itemHov ? '600' : '500'
 
-              // Checklist icon (16×16 at cx=hx+30)
-              const ix = hx + 30
               const iconPaths = {
                 neural: (
-                  <g fill="none" stroke="#14b8a6" strokeWidth="1.4" strokeLinecap="round" transform={`translate(${ix - 8},${iy - 8})`}>
+                  <g fill="none" stroke={ic} strokeWidth="1.4" strokeLinecap="round" transform={`translate(${ix - 8},${iy - 8})`}>
                     <circle cx="8" cy="8" r="3"/>
-                    <circle cx="2" cy="4" r="1.5"/>
-                    <circle cx="14" cy="4" r="1.5"/>
-                    <circle cx="2" cy="12" r="1.5"/>
-                    <circle cx="14" cy="12" r="1.5"/>
-                    <circle cx="8" cy="1.5" r="1.5"/>
-                    <circle cx="8" cy="14.5" r="1.5"/>
-                    <line x1="5" y1="7" x2="3.5" y2="5"/>
-                    <line x1="11" y1="7" x2="12.5" y2="5"/>
-                    <line x1="5" y1="9" x2="3.5" y2="11"/>
-                    <line x1="11" y1="9" x2="12.5" y2="11"/>
-                    <line x1="8" y1="5" x2="8" y2="3"/>
-                    <line x1="8" y1="11" x2="8" y2="13"/>
+                    <circle cx="2" cy="4" r="1.5"/><circle cx="14" cy="4" r="1.5"/>
+                    <circle cx="2" cy="12" r="1.5"/><circle cx="14" cy="12" r="1.5"/>
+                    <circle cx="8" cy="1.5" r="1.5"/><circle cx="8" cy="14.5" r="1.5"/>
+                    <line x1="5" y1="7" x2="3.5" y2="5"/><line x1="11" y1="7" x2="12.5" y2="5"/>
+                    <line x1="5" y1="9" x2="3.5" y2="11"/><line x1="11" y1="9" x2="12.5" y2="11"/>
+                    <line x1="8" y1="5" x2="8" y2="3"/><line x1="8" y1="11" x2="8" y2="13"/>
                   </g>
                 ),
                 logic: (
-                  <g fill="none" stroke="#14b8a6" strokeWidth="1.4" strokeLinecap="round" transform={`translate(${ix - 8},${iy - 8})`}>
-                    <circle cx="5" cy="5" r="3"/>
-                    <circle cx="11" cy="11" r="3"/>
-                    <path d="M8 5h3v3"/>
-                    <path d="M5 8v3h3"/>
-                    <path d="M8 8l2 2"/>
-                    <line x1="1" y1="5" x2="2" y2="5"/>
-                    <line x1="14" y1="11" x2="15" y2="11"/>
-                    <path d="M13 5.5q1-1 1-3"/>
-                    <path d="M3 12.5q-1 1-1 3"/>
+                  <g fill="none" stroke={ic} strokeWidth="1.4" strokeLinecap="round" transform={`translate(${ix - 8},${iy - 8})`}>
+                    <circle cx="5" cy="5" r="3"/><circle cx="11" cy="11" r="3"/>
+                    <path d="M8 5h3v3"/><path d="M5 8v3h3"/><path d="M8 8l2 2"/>
+                    <line x1="1" y1="5" x2="2" y2="5"/><line x1="14" y1="11" x2="15" y2="11"/>
+                    <path d="M13 5.5q1-1 1-3"/><path d="M3 12.5q-1 1-1 3"/>
                   </g>
                 ),
                 crossplatf: (
-                  <g fill="none" stroke="#14b8a6" strokeWidth="1.4" strokeLinecap="round" transform={`translate(${ix - 8},${iy - 8})`}>
+                  <g fill="none" stroke={ic} strokeWidth="1.4" strokeLinecap="round" transform={`translate(${ix - 8},${iy - 8})`}>
                     <rect x="1" y="1" width="6" height="6" rx="1.5"/>
                     <rect x="9" y="1" width="6" height="6" rx="1.5"/>
                     <rect x="1" y="9" width="6" height="6" rx="1.5"/>
                     <rect x="9" y="9" width="6" height="6" rx="1.5"/>
-                    <line x1="7" y1="4" x2="9" y2="4"/>
-                    <line x1="4" y1="7" x2="4" y2="9"/>
-                    <line x1="12" y1="7" x2="12" y2="9"/>
-                    <line x1="7" y1="12" x2="9" y2="12"/>
+                    <line x1="7" y1="4" x2="9" y2="4"/><line x1="4" y1="7" x2="4" y2="9"/>
+                    <line x1="12" y1="7" x2="12" y2="9"/><line x1="7" y1="12" x2="9" y2="12"/>
                     <path d="M10 11l1.5 1.5L13 10"/>
                   </g>
                 ),
               }
 
               return (
-                <g key={icon}>
-                  {/* Circle check bg */}
+                <g
+                  key={icon}
+                  onMouseEnter={() => setHovItem(idx)}
+                  onMouseLeave={() => setHovItem(null)}
+                  style={{
+                    transform: itemHov ? 'scale(1.04)' : 'scale(1)',
+                    transformBox: 'fill-box',
+                    transformOrigin: 'center',
+                    transition: 'transform 0.15s ease',
+                    cursor: 'default',
+                  }}
+                >
                   <circle cx={ix} cy={iy} r="14"
-                    fill="rgba(13,148,136,0.08)" stroke="#0d9488" strokeWidth="1" opacity="0.6"/>
+                    fill={circleFill} stroke={circleStroke} strokeWidth="1" opacity="0.7"
+                    style={{ transition: 'fill 0.2s, stroke 0.2s' }}
+                  />
                   {iconPaths[icon]}
-                  {/* Text */}
                   <text
                     x={hx + 56} y={iy + 5}
                     fontFamily="Inter, system-ui, sans-serif"
-                    fontSize="11" fontWeight="500" fill="#3f3f46"
+                    fontSize="11" fontWeight={textWeight} fill={textFill}
+                    style={{ transition: 'fill 0.2s' }}
                   >
                     {text}
                   </text>
-                  {/* Separator (except last) */}
                   {idx < checkItems.length - 1 && (
                     <line
                       x1={hx + 20} y1={iy + itemStep / 2}
@@ -507,6 +571,7 @@ function ArchDiagram() {
                 </g>
               )
             })}
+          </g>
           </g>
         )
       })()}
