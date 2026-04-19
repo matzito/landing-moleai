@@ -196,7 +196,7 @@ export default function CTA() {
   const [showForm, setShowForm] = useState(false)
 
   return (
-    <section id="contact" className="py-24 px-6" ref={ref}>
+    <section id="contact" className="py-28 px-6" ref={ref}>
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 22 }}

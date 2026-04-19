@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import LogoMark from './LogoMark'
 
 const LINKS = [
   { label: 'Proceso',      href: '#process'      },
@@ -33,16 +34,9 @@ export default function Navbar() {
 
         {/* Logo */}
         <a href="#" className="flex items-center gap-2.5 group">
-          <div className="w-7 h-7 rounded-md bg-white border border-zinc-200 flex items-center justify-center group-hover:border-zinc-300 transition-colors shadow-sm">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <rect x="1" y="1" width="5" height="5" rx="1" stroke="#0d9488" strokeWidth="1.2"/>
-              <rect x="8" y="1" width="5" height="5" rx="1" stroke="#0d9488" strokeWidth="1.2"/>
-              <rect x="1" y="8" width="5" height="5" rx="1" stroke="#0d9488" strokeWidth="1.2"/>
-              <rect x="8" y="8" width="5" height="5" rx="1" stroke="#0d9488" strokeWidth="1.2" opacity="0.4"/>
-            </svg>
-          </div>
+          <LogoMark size={28} className="group-hover:opacity-90 transition-opacity" />
           <span className="text-sm font-semibold tracking-tight text-zinc-800">
-            Mole<span className="text-teal-brand">AI</span>
+            mole<span className="text-teal-brand">ai</span>
           </span>
         </a>
 

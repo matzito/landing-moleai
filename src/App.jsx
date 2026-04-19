@@ -1,9 +1,9 @@
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import ProcessFlow from './components/ProcessFlow'
+import AgentGraph from './components/AgentGraph'
 import TheDifference from './components/TheDifference'
 import ArchitectureSection from './components/ArchitectureSection'
-import CapabilityMatrix from './components/CapabilityMatrix'
 import ComparisonSection from './components/ComparisonSection'
 import TechMarquee from './components/TechMarquee'
 import CTA from './components/CTA'
@@ -18,6 +18,7 @@ export default function App() {
         <TechMarquee />
         <ProcessFlow />
         <ArchitectureSection />
+        {/* <AgentGraph /> */}
         <TheDifference />
         <ComparisonSection />
         <CTA />
