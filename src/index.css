@@ -81,6 +81,10 @@
     display: inline-block;
     flex-shrink: 0;
   }
+
+  .border-outer {
+    box-shadow: 0 4px 6px #20366d05,0 8px 15px #20366d0a,0 16px 32px #20366d14;
+  }
 }
 
 @keyframes pulse-teal {

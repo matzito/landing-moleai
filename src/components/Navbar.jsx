@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const LINKS = [
-  { label: 'Proceso',     href: '#process' },
-  { label: 'Capacidades', href: '#capabilities' },
-  { label: 'Comparativa', href: '#comparison' },
-  { label: 'Stack',       href: '#stack' },
+  { label: 'Proceso',      href: '#process'      },
+  { label: 'Arquitectura', href: '#architecture' },
+  { label: 'Diferencial',  href: '#diferencial'  },
+  { label: 'Comparativa',  href: '#comparison'   },
 ]
 
 export default function Navbar() {

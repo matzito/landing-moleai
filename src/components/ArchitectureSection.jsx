@@ -691,7 +691,7 @@ export default function ArchitectureSection() {
   const diagramInView = useInView(diagramRef, { once: true, margin: '-40px' })
 
   return (
-    <section id="architecture" className="py-28 px-6 border-b border-zinc-200">
+    <section id="architecture" className="py-24 px-6 border-b border-zinc-200">
       <div className="max-w-7xl mx-auto flex flex-col gap-12">
 
         {/* Section label */}
@@ -701,7 +701,6 @@ export default function ArchitectureSection() {
           </span>
           <h2
             className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 leading-tight"
-            style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
           >
             Integraciones nativas,{' '}
             <span className="text-gradient-teal">orquestación determinista.</span>
