@@ -4,24 +4,39 @@ import { motion, useInView } from 'framer-motion'
 const STEPS = [
   {
     step: '01',
-    title: 'Arquitectura y Diseño de Sistemas',
+    label: 'Auditoría y Diagnóstico',
+    title: 'Diagnóstico de Viabilidad Técnica',
     description:
-      'Definimos el blueprint técnico: desde la estructura de datos y las interfaces de usuario hasta los roles específicos de cada agente.',
-    tag: 'Blueprint',
+      'Mapeamos sus flujos críticos e identificamos puntos de fricción para definir una estrategia de integración de IA con impacto medible.',
+    bg: 'bg-slate-700',
+    accent: 'text-slate-400',
   },
   {
     step: '02',
-    title: 'Integración Inteligente',
+    label: 'Arquitectura',
+    title: 'Blueprint y Diseño de Sistemas',
     description:
-      'Conectamos su stack empresarial (ERP, CRM, APIs) en un flujo de trabajo unificado y determinista mediante orquestación agéntica.',
-    tag: 'Orchestration',
+      'Definimos la arquitectura técnica punta a punta: desde la estructura de datos hasta los roles específicos de cada agente en el ecosistema.',
+    bg: 'bg-teal-700',
+    accent: 'text-teal-400',
   },
   {
     step: '03',
-    title: 'Despliegue Escalable y Auditoría',
+    label: 'Ejecución',
+    title: 'Orquestación y Despliegue',
     description:
-      'Desplegamos en infraestructura cloud de alta disponibilidad con monitoreo en tiempo real y logs de auditoría para cada decisión del sistema.',
-    tag: 'Production',
+      'Conectamos su stack empresarial (ERP, CRM, APIs) en un flujo de trabajo unificado y determinista mediante el motor propietario Mole AI.',
+    bg: 'bg-orange-600',
+    accent: 'text-orange-300',
+  },
+  {
+    step: '04',
+    label: 'Gobernanza',
+    title: 'Auditoría y Escalabilidad',
+    description:
+      'Lanzamos en infraestructura cloud de grado empresarial con monitoreo en tiempo real y logs de auditoría para cada decisión del sistema.',
+    bg: 'bg-sky-700',
+    accent: 'text-indigo-400',
   },
 ]
 
@@ -30,8 +45,8 @@ export default function ProcessFlow() {
   const inView = useInView(ref, { once: true, margin: '-60px' })
 
   return (
-    <section id="process" className="py-20 px-6 border-b border-zinc-200 bg-white">
-      <div className="max-w-7xl mx-auto flex flex-col gap-16">
+    <section id="process" className="py-28 px-6 border-b border-zinc-200 bg-white">
+      <div className="max-w-7xl mx-auto flex flex-col gap-14">
 
         {/* ── Section heading ── */}
         <motion.div
@@ -41,7 +56,7 @@ export default function ProcessFlow() {
           transition={{ duration: 0.5 }}
           className="flex flex-col gap-4 max-w-2xl"
         >
-          <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-400">
+          <span className="text-[11px] font-mono font-semibold tracking-widest uppercase text-zinc-400">
             Delivery Process
           </span>
           <h2
@@ -52,41 +67,40 @@ export default function ProcessFlow() {
           </h2>
         </motion.div>
 
-        {/* ── Bento grid ── */}
-        <div className="grid sm:grid-cols-3 gap-8">
+        {/* ── 4-card bento grid ── */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {STEPS.map((s, i) => (
             <motion.div
               key={s.step}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 28 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.52, delay: 0.12 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="relative overflow-hidden flex flex-col justify-between gap-12 p-8 rounded-2xl border border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm transition-all duration-200"
+              transition={{ duration: 0.55, delay: 0.1 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+              className={`relative overflow-hidden flex flex-col justify-between gap-14 p-8 rounded-3xl ${s.bg}`}
+              style={{ minHeight: '22rem' }}
             >
-              {/* Watermark number — decorative background */}
+              {/* Watermark step — decorative */}
               <span
-                className="absolute -bottom-4 -right-1 font-black font-mono leading-none select-none pointer-events-none"
-                style={{ fontSize: '7.5rem', color: '#f4f4f5' }}
                 aria-hidden="true"
+                className="absolute -bottom-5 -right-2 font-black font-mono leading-none select-none pointer-events-none text-white/5"
+                style={{ fontSize: '9rem' }}
               >
                 {s.step}
               </span>
 
-              {/* Top row: step badge + tag */}
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-zinc-200 bg-zinc-50 text-[11px] font-black font-mono text-zinc-500 tabular-nums flex-shrink-0">
-                  {s.step}
-                </span>
-                <span className="text-[9px] font-mono font-semibold tracking-[0.15em] uppercase text-zinc-300">
-                  {s.tag}
-                </span>
-              </div>
+              {/* Top: step number */}
+              <span className={`font-mono text-[11px] font-semibold tracking-widest ${s.accent}`}>
+                {s.step}
+              </span>
 
-              {/* Content */}
+              {/* Bottom: content */}
               <div className="relative z-10 flex flex-col gap-3">
-                <h3 className="text-[17px] font-bold text-zinc-900 leading-snug tracking-tight">
+                <p className="text-[10px] font-mono font-semibold tracking-[0.18em] uppercase text-white/40">
+                  {s.label}
+                </p>
+                <h3 className="text-[17px] font-bold text-white leading-snug tracking-tight">
                   {s.title}
                 </h3>
-                <p className="text-[13.5px] text-zinc-500 leading-relaxed">
+                <p className="text-[13px] text-white/60 leading-relaxed">
                   {s.description}
                 </p>
               </div>

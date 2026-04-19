@@ -163,7 +163,7 @@ function ErrorLogMockup() {
 const METRICS = [
   { value: '10x',   label: 'Capacidad de escala'        },
   { value: '99.9%', label: 'Precisión operativa'        },
-  { value: '-40%',  label: 'Reducción de costos'        },
+  { value: '-70%',  label: 'Reducción de costos'        },
   { value: '24/7',  label: 'Operación sin interrupción' },
 ]
 
@@ -174,7 +174,7 @@ export default function TheDifference() {
 
   return (
     <section id="diferencial" className="bg-white py-20 px-6 border-b border-zinc-100">
-      <div className="max-w-7xl mx-auto flex flex-col gap-16">
+      <div className="max-w-7xl mx-auto flex flex-col gap-8">
 
         {/* ── Header ── */}
         <motion.div
@@ -249,7 +249,7 @@ export default function TheDifference() {
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.28 }}
-          className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-zinc-100 border border-zinc-100 rounded-2xl overflow-hidden"
+          className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-zinc-100 rounded-2xl overflow-hidden"
         >
           {METRICS.map((m, i) => (
             <div key={m.label} className="flex flex-col gap-1 px-8 py-7">

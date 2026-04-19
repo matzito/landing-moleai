@@ -29,7 +29,7 @@ export default function ComparisonSection() {
   const inView = useInView(ref, { once: true, margin: '-60px' })
 
   return (
-    <section id="comparison" className="py-24 px-6 border-b border-zinc-200">
+    <section id="comparison" className="py-28 px-6 border-b border-zinc-200">
       <div className="max-w-7xl mx-auto">
 
         <motion.div

@@ -138,7 +138,7 @@ export default function CapabilityMatrix() {
   const inView = useInView(ref, { once: true })
 
   return (
-    <section id="capabilities" className="py-24 px-6 border-b border-zinc-200">
+    <section id="capabilities" className="py-28 px-6 border-b border-zinc-200">
       <div className="max-w-7xl mx-auto">
         <motion.div
           ref={ref}

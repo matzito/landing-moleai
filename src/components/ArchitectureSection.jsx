@@ -5,7 +5,7 @@ import { motion, useInView } from 'framer-motion'
 const NH  = 42    // node height
 const NS  = 51    // node step (height + gap)
 const NY0 = 55    // first node top-y
-const NW  = 216   // node width
+const NW  = 200   // node width
 const NX_L = 10   // left col x
 const NX_R = 734  // right col x  (= 960 - 10 - 216)
 
@@ -202,7 +202,7 @@ function ArchDiagram() {
           <path d="M0 0L7 3.5L0 7z" fill="#14b8a6" opacity="0.9"/>
         </marker>
         <marker id="arrow-purple" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-          <path d="M0 0L7 3.5L0 7z" fill="#7c3aed" opacity="0.7"/>
+          <path d="M0 0L7 3.5L0 7z" fill="#0369a1" opacity="0.7"/>
         </marker>
 
         {/* Mole network icon symbol */}
@@ -254,24 +254,24 @@ function ArchDiagram() {
       {/* ─── Left vertical bus ───────────────────────────────── */}
       <line
         x1={busL} y1={busTop} x2={busL} y2={busBot}
-        stroke="#7c3aed" strokeWidth="1" strokeDasharray="3 2" opacity="0.5"
+        stroke="#0369a1" strokeWidth="1" strokeDasharray="3 2" opacity="0.5"
       />
       {/* Bus → Hub arrow */}
       <line
-        x1={busL} y1={midY} x2={hubX - 2} y2={midY}
-        stroke="#14b8a6" strokeWidth="1.8" opacity="0.9"
+        x1={busL} y1={midY} x2={hubX - 6} y2={midY}
+        stroke="#14b8a6" strokeWidth="1" opacity="0.9"
         markerEnd="url(#arrow-teal)"
       />
 
       {/* ─── Right vertical bus ──────────────────────────────── */}
       <line
         x1={busR} y1={busTop} x2={busR} y2={busBot}
-        stroke="#7c3aed" strokeWidth="1" strokeDasharray="3 2" opacity="0.5"
+        stroke="#0369a1" strokeWidth="1" strokeDasharray="3 2" opacity="0.5"
       />
       {/* Hub → Bus arrow */}
       <line
-        x1={hubX2 + 2} y1={midY} x2={busR - 4} y2={midY}
-        stroke="#14b8a6" strokeWidth="1.8" opacity="0.9"
+        x1={hubX2 + 2} y1={midY} x2={busR - 6} y2={midY}
+        stroke="#14b8a6" strokeWidth="1" opacity="0.9"
         markerEnd="url(#arrow-teal)"
       />
 
@@ -289,8 +289,8 @@ function ArchDiagram() {
             {/* Connection line — stays fixed, outside the scale group */}
             <line
               x1={NX_L + NW} y1={cy} x2={busL} y2={cy}
-              stroke={active ? '#14b8a6' : '#7c3aed'}
-              strokeWidth={active ? 1.8 : 1}
+              stroke={active ? '#14b8a6' : '#0369a1'}
+              strokeWidth={active ? 0.75 : 1}
               strokeDasharray={active ? undefined : '3 2'}
               opacity={active ? 1 : 0.5}
               style={{ transition: 'stroke 0.2s, opacity 0.2s, stroke-width 0.2s' }}
@@ -298,7 +298,7 @@ function ArchDiagram() {
             {node.connLabel && (
               <text x={midX} y={cy - 4} textAnchor="middle"
                 fontFamily="'JetBrains Mono', 'Courier New', monospace"
-                fontSize="6" fill={active ? '#0d9488' : isTeal ? '#0d9488' : '#a78bfa'}>
+                fontSize="6" fill={active ? '#0d9488' : isTeal ? '#0d9488' : '#0369a1'}>
                 {node.connLabel}
               </text>
             )}
@@ -354,8 +354,8 @@ function ArchDiagram() {
             {/* Connection line — outside scale group */}
             <line
               x1={busR} y1={cy} x2={NX_R} y2={cy}
-              stroke={active ? (isOrg ? '#f97316' : '#14b8a6') : '#7c3aed'}
-              strokeWidth={active ? 1.8 : 1}
+              stroke={active ? (isOrg ? '#f97316' : '#14b8a6') : '#0369a1'}
+              strokeWidth={active ? 0.75 : 1}
               strokeDasharray={active ? undefined : '3 2'}
               opacity={active ? 1 : 0.5}
               style={{ transition: 'stroke 0.2s, opacity 0.2s, stroke-width 0.2s' }}
@@ -363,7 +363,7 @@ function ArchDiagram() {
             {node.connLabel && (
               <text x={midX} y={cy - 4} textAnchor="middle"
                 fontFamily="'JetBrains Mono', 'Courier New', monospace"
-                fontSize="6" fill={active ? (isOrg ? '#f97316' : '#0d9488') : isOrg ? '#f97316' : '#a78bfa'}>
+                fontSize="6" fill={active ? (isOrg ? '#f97316' : '#0d9488') : isOrg ? '#f97316' : '#0369a1'}>
                 {node.connLabel}
               </text>
             )}
@@ -415,9 +415,9 @@ function ArchDiagram() {
         const bodyY = hy + headerH
 
         const checkItems = [
-          { icon: 'neural',    text: 'Orchestrate Multi-Agent Systems'              },
-          { icon: 'logic',     text: 'Handle Complex Conditional Logic & Fallbacks' },
-          { icon: 'crossplatf',text: 'Execute Cross-Platform Tasks and Verifications'},
+          { icon: '1', text: 'Coordina múltiples tareas a la vez'              },
+          { icon: '2', text: 'Toma decisiones lógicas y resuelve problemas'    },
+          { icon: '3', text: 'Mueve información entre todos tus sistemas'      },
         ]
         const bodyH    = hh - headerH
         const itemStep = bodyH / (checkItems.length + 0.5)
@@ -478,7 +478,7 @@ function ArchDiagram() {
             <text x={hx + 20} y={hy + 50}
               fontFamily="Inter, system-ui, sans-serif"
               fontSize="9" fontWeight="400" fill="rgba(255,255,255,0.65)">
-              Agentic Orchestration Engine
+              El Cerebro de Operaciones Digitales
             </text>
 
             {/* AI badge */}
@@ -502,39 +502,6 @@ function ArchDiagram() {
               const textFill     = itemHov ? '#ea580c' : '#3f3f46'
               const textWeight   = itemHov ? '600' : '500'
 
-              const iconPaths = {
-                neural: (
-                  <g fill="none" stroke={ic} strokeWidth="1.4" strokeLinecap="round" transform={`translate(${ix - 8},${iy - 8})`}>
-                    <circle cx="8" cy="8" r="3"/>
-                    <circle cx="2" cy="4" r="1.5"/><circle cx="14" cy="4" r="1.5"/>
-                    <circle cx="2" cy="12" r="1.5"/><circle cx="14" cy="12" r="1.5"/>
-                    <circle cx="8" cy="1.5" r="1.5"/><circle cx="8" cy="14.5" r="1.5"/>
-                    <line x1="5" y1="7" x2="3.5" y2="5"/><line x1="11" y1="7" x2="12.5" y2="5"/>
-                    <line x1="5" y1="9" x2="3.5" y2="11"/><line x1="11" y1="9" x2="12.5" y2="11"/>
-                    <line x1="8" y1="5" x2="8" y2="3"/><line x1="8" y1="11" x2="8" y2="13"/>
-                  </g>
-                ),
-                logic: (
-                  <g fill="none" stroke={ic} strokeWidth="1.4" strokeLinecap="round" transform={`translate(${ix - 8},${iy - 8})`}>
-                    <circle cx="5" cy="5" r="3"/><circle cx="11" cy="11" r="3"/>
-                    <path d="M8 5h3v3"/><path d="M5 8v3h3"/><path d="M8 8l2 2"/>
-                    <line x1="1" y1="5" x2="2" y2="5"/><line x1="14" y1="11" x2="15" y2="11"/>
-                    <path d="M13 5.5q1-1 1-3"/><path d="M3 12.5q-1 1-1 3"/>
-                  </g>
-                ),
-                crossplatf: (
-                  <g fill="none" stroke={ic} strokeWidth="1.4" strokeLinecap="round" transform={`translate(${ix - 8},${iy - 8})`}>
-                    <rect x="1" y="1" width="6" height="6" rx="1.5"/>
-                    <rect x="9" y="1" width="6" height="6" rx="1.5"/>
-                    <rect x="1" y="9" width="6" height="6" rx="1.5"/>
-                    <rect x="9" y="9" width="6" height="6" rx="1.5"/>
-                    <line x1="7" y1="4" x2="9" y2="4"/><line x1="4" y1="7" x2="4" y2="9"/>
-                    <line x1="12" y1="7" x2="12" y2="9"/><line x1="7" y1="12" x2="9" y2="12"/>
-                    <path d="M10 11l1.5 1.5L13 10"/>
-                  </g>
-                ),
-              }
-
               return (
                 <g
                   key={icon}
@@ -552,7 +519,15 @@ function ArchDiagram() {
                     fill={circleFill} stroke={circleStroke} strokeWidth="1" opacity="0.7"
                     style={{ transition: 'fill 0.2s, stroke 0.2s' }}
                   />
-                  {iconPaths[icon]}
+                  <text
+                    x={ix} y={iy + 4.5}
+                    textAnchor="middle"
+                    fontFamily="'JetBrains Mono', 'Fira Code', monospace"
+                    fontSize="11" fontWeight="700" fill={ic}
+                    style={{ transition: 'fill 0.2s' }}
+                  >
+                    {icon}
+                  </text>
                   <text
                     x={hx + 56} y={iy + 5}
                     fontFamily="Inter, system-ui, sans-serif"
@@ -691,7 +666,7 @@ export default function ArchitectureSection() {
   const diagramInView = useInView(diagramRef, { once: true, margin: '-40px' })
 
   return (
-    <section id="architecture" className="py-24 px-6 border-b border-zinc-200">
+    <section id="architecture" className="py-28 px-6 border-b border-zinc-200">
       <div className="max-w-7xl mx-auto flex flex-col gap-12">
 
         {/* Section label */}
@@ -754,7 +729,7 @@ export default function ArchitectureSection() {
 
           {/* SVG diagram — allows horizontal scroll on small screens */}
           <div className="overflow-x-auto">
-            <div className="min-w-[700px] p-4">
+            <div className="min-w-[700px] p-2">
               <ArchDiagram/>
             </div>
           </div>
@@ -762,7 +737,7 @@ export default function ArchitectureSection() {
           {/* Legend */}
           <div className="flex flex-wrap items-center gap-5 px-5 py-3 border-t border-zinc-100 bg-zinc-50">
             {[
-              { color: '#7c3aed', dash: true,  label: 'Data connections' },
+              { color: '#0369a1', dash: true,  label: 'Data connections' },
               { color: '#14b8a6', dash: false, label: 'Orchestration flow' },
               { color: '#14b8a6', dash: false, label: 'Highlighted integration', glow: true },
               { color: '#f97316', dash: false, label: 'Highlighted output', glow: true, org: true },
