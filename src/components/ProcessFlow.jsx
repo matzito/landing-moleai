@@ -41,12 +41,11 @@ export default function ProcessFlow() {
           transition={{ duration: 0.5 }}
           className="flex flex-col gap-4 max-w-2xl"
         >
-          <span className="text-[11px] font-mono font-semibold tracking-widest uppercase text-zinc-400">
+          <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-400">
             Delivery Process
           </span>
           <h2
             className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 leading-[1.1]"
-            style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
           >
             Diseñamos, construimos y orquestamos su{' '}
             <span className="text-gradient-teal">ecosistema inteligente.</span>

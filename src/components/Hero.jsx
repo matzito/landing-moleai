@@ -4,28 +4,32 @@ import { motion } from 'framer-motion'
 /* ── Workflow pipeline states ────────────────────────────────── */
 const PIPELINE_STATES = [
   [
-    { name: 'Planner',   status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: null },
-    { name: 'Retrieval', status: 'running',  task: 'Searching vectors…', tokens: '—',     ms: null },
-    { name: 'Executor',  status: 'queued',   task: 'Awaiting retrieval', tokens: '—',     ms: null },
-    { name: 'Evaluator', status: 'queued',   task: 'Awaiting pipeline',  tokens: '—',     ms: null },
+    { name: 'Planner',    status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: null },
+    { name: 'Integrator',  status: 'running',  task: 'Searching vectors…', tokens: '—',     ms: null },
+    { name: 'Executor',    status: 'queued',   task: 'Awaiting retrieval', tokens: '—',     ms: null },
+    { name: 'Validator',   status: 'queued',   task: 'Awaiting pipeline',  tokens: '—',     ms: null },
+    { name: 'Dispatcher',  status: 'queued',   task: 'Awaiting pipeline',  tokens: '—',     ms: null },
   ],
   [
-    { name: 'Planner',   status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: '312ms' },
-    { name: 'Retrieval', status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
-    { name: 'Executor',  status: 'running',  task: 'API calls (2 / 5)…', tokens: '—',     ms: null   },
-    { name: 'Evaluator', status: 'queued',   task: 'Awaiting executor',  tokens: '—',     ms: null   },
+    { name: 'Planner',    status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: '312ms' },
+    { name: 'Integrator',  status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
+    { name: 'Executor',    status: 'running',  task: 'API calls (2 / 5)…', tokens: '—',     ms: null   },
+    { name: 'Validator',   status: 'queued',   task: 'Awaiting executor',  tokens: '—',     ms: null   },
+    { name: 'Dispatcher',  status: 'queued',   task: 'Awaiting executor',  tokens: '—',     ms: null   },
   ],
   [
-    { name: 'Planner',   status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: '312ms' },
-    { name: 'Retrieval', status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
-    { name: 'Executor',  status: 'complete', task: 'All APIs resolved',  tokens: '4,217', ms: '891ms' },
-    { name: 'Evaluator', status: 'running',  task: 'Evaluating output…', tokens: '—',     ms: null   },
+    { name: 'Planner',    status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: '312ms' },
+    { name: 'Integrator',  status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
+    { name: 'Executor',    status: 'complete', task: 'All APIs resolved',  tokens: '4,217', ms: '891ms' },
+    { name: 'Validator',   status: 'running',  task: 'Evaluating output…', tokens: '—',     ms: null   },
+    { name: 'Dispatcher',  status: 'queued',   task: 'Awaiting validation', tokens: '—',     ms: null   },
   ],
   [
-    { name: 'Planner',   status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: '312ms' },
-    { name: 'Retrieval', status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
-    { name: 'Executor',  status: 'complete', task: 'All APIs resolved',  tokens: '4,217', ms: '891ms' },
-    { name: 'Evaluator', status: 'complete', task: 'Score 0.94 · Pass',  tokens: '892',   ms: '204ms' },
+    { name: 'Planner',    status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: '312ms' },
+    { name: 'Integrator',  status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
+    { name: 'Executor',    status: 'complete', task: 'All APIs resolved',  tokens: '4,217', ms: '891ms' },
+    { name: 'Validator',   status: 'complete', task: 'Score 0.94 · Pass',  tokens: '892',   ms: '204ms' },
+    { name: 'Dispatcher',  status: 'running',  task: 'Routing to App/API',  tokens: '—',     ms: null   },
   ],
 ]
 
@@ -50,7 +54,7 @@ function AgentWorkflow() {
     .toLocaleString()
 
   return (
-    <div className="rounded-xl overflow-hidden border border-zinc-200 bg-white shadow-sm">
+    <div className="rounded-xl overflow-hidden border border-zinc-200 border-outer bg-white shadow-sm">
       {/* Chrome */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 bg-zinc-50">
         <div className="flex items-center gap-1.5">
@@ -68,7 +72,7 @@ function AgentWorkflow() {
       </div>
 
       {/* Header row */}
-      <div className="grid grid-cols-[28px_1fr_96px_80px_56px] px-4 py-2 border-b border-zinc-100 bg-zinc-50/50">
+      <div className="grid grid-cols-[28px_200px_260px_80px_56px] px-4 py-2 border-b border-zinc-100 bg-zinc-50/50">
         {['', 'Agent', 'Current Task', 'Tokens', 'Time'].map(h => (
           <span key={h} className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest font-mono">{h}</span>
         ))}
@@ -83,7 +87,7 @@ function AgentWorkflow() {
             <motion.div
               key={row.name}
               layout
-              className={`grid grid-cols-[28px_1fr_96px_80px_56px] px-4 py-3 items-center ${isRunning ? 'row-running' : ''}`}
+              className={`grid grid-cols-[28px_200px_220px_80px_70px] px-4 py-3 items-center ${isRunning ? 'row-running' : ''}`}
             >
               <span className="text-[10px] font-mono text-zinc-300">{String(i + 1).padStart(2, '0')}</span>
               <div className="flex items-center gap-2.5 min-w-0">
@@ -103,7 +107,7 @@ function AgentWorkflow() {
       <div className="px-4 py-2.5 border-t border-zinc-100 bg-zinc-50/50 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span className="text-[10px] font-mono text-zinc-400">mode: <span className="text-zinc-600">deterministic</span></span>
-          <span className="text-[10px] font-mono text-zinc-400">memory: <span className="text-zinc-600">48.2 KB</span></span>
+          <span className="text-[10px] font-mono text-zinc-400">memory: <span className="text-zinc-600">137 MB</span></span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="dot-teal" style={{ width: 5, height: 5 }}/>
@@ -122,7 +126,7 @@ const fadeUp = (delay = 0) => ({
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col justify-center pt-24 pb-20 px-6 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col justify-center pt-24 pb-20 px-2 overflow-hidden">
 
       {/* Subtle grid */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
@@ -141,7 +145,7 @@ export default function Hero() {
       />
 
       <div className="relative z-10 max-w-7xl mx-auto w-full">
-        <div className="grid lg:grid-cols-[1fr_1.1fr] gap-14 lg:gap-20 items-center">
+        <div className="grid lg:grid-cols-[1fr_1.1fr] gap-14 lg:gap-8 items-center">
 
           {/* Left */}
           <div className="flex flex-col gap-7">
@@ -159,7 +163,7 @@ export default function Hero() {
               {...fadeUp(0.08)}
               className="text-[2.6rem] sm:text-5xl lg:text-[3.2rem] font-black leading-[1.06] tracking-[-0.02em] text-zinc-900"
             >
-              Ingeniería de Software y Orquestación de{' '}
+              Ingeniería de Software e Integración de{' '}
               <span className="text-gradient-teal">Inteligencia Artificial</span>{' '}
               para la Próxima Generación de Empresas
             </motion.h1>
@@ -193,10 +197,10 @@ export default function Hero() {
                 </svg>
               </a>
               <a
-                href="#capabilities"
+                href="#comparison"
                 className="inline-flex items-center gap-1.5 px-5 py-3 text-sm text-zinc-500 hover:text-zinc-900 border border-zinc-200 hover:border-zinc-300 rounded-xl bg-white transition-all duration-150 shadow-sm"
               >
-                Ver capacidades
+                Ver comparativa
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
                 </svg>
@@ -213,10 +217,10 @@ export default function Hero() {
           >
             <div className="flex items-center justify-between mb-1">
               <span className="text-[11px] font-mono text-zinc-400 tracking-widest uppercase">Runtime Preview</span>
-              <span className="text-[11px] font-mono text-zinc-300">moleai.orchestrator v2.4</span>
+              <span className="text-[11px] font-mono text-zinc-300">moleai.engineering v2.4</span>
             </div>
             <AgentWorkflow/>
-            <p className="text-[11px] text-zinc-300 font-mono text-right">Simulación en vivo · Actualización cada 2.2s</p>
+            <p className="text-[11px] text-zinc-400 font-mono text-right">Telemetría activa · Actualización cada 0.2s</p>
           </motion.div>
 
         </div>

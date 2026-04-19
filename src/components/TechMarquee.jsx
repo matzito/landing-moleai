@@ -7,10 +7,9 @@ const TECHNOLOGIES = [
   { name: 'Python',     color: '#3776AB' },
   { name: 'React',      color: '#0ea5e9' },
   { name: 'LangChain',  color: '#1a9b6c' },
-  { name: 'LangGraph',  color: '#0d9488' },
   { name: 'OpenAI',     color: '#1a7f5a' },
   { name: 'Anthropic',  color: '#b45309' },
-  { name: 'Pinecone',   color: '#2D3FE7' },
+  { name: 'Open Claw',  color: '#2D3FE7' },
   { name: 'FastAPI',    color: '#009688' },
   { name: 'Docker',     color: '#2496ED' },
   { name: 'Kubernetes', color: '#326CE5' },
@@ -18,8 +17,8 @@ const TECHNOLOGIES = [
   { name: 'Redis',      color: '#DC382D' },
   { name: 'Terraform',  color: '#7B42BC' },
   { name: 'TypeScript', color: '#3178C6' },
-  { name: 'Weaviate',   color: '#FA0050' },
-  { name: 'Grafana',    color: '#F46800' },
+  { name: 'Amazon AWS', color: '#FA0050' },
+  { name: 'PHP',        color: '#F46800' },
 ]
 
 function TechItem({ tech }) {
@@ -48,7 +47,7 @@ export default function TechMarquee() {
   const doubled = [...TECHNOLOGIES, ...TECHNOLOGIES]
 
   return (
-    <section id="stack" className="py-20 border-b border-zinc-200 overflow-hidden bg-[#F0F2F3]" ref={ref}>
+    <section id="stack" className="py-6 border-b border-zinc-200 overflow-hidden bg-[#F0F2F3]" ref={ref}>
       <div className="max-w-7xl mx-auto px-6 mb-10">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -61,7 +60,7 @@ export default function TechMarquee() {
               Technology Stack
             </span>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900">
-              El stack que mueve producción real.
+              Estándares de ingeniería y stack tecnológico de alto nivel.
             </h2>
           </div>
           <p className="text-[13px] text-zinc-500 max-w-xs sm:text-right leading-relaxed">
