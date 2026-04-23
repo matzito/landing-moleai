@@ -1,8 +1,15 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import LogoMark from './LogoMark'
 
-const LINKS = [
+type NavLink = {
+  label: string
+  href: string
+}
+
+const LINKS: NavLink[] = [
   { label: 'Proceso',      href: '#process'      },
   { label: 'Arquitectura', href: '#architecture' },
   { label: 'Diferencial',  href: '#diferencial'  },
@@ -10,8 +17,8 @@ const LINKS = [
 ]
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState<boolean>(false)
+  const [menuOpen, setMenuOpen] = useState<boolean>(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)

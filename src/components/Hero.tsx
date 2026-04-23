@@ -1,46 +1,64 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
-/* ── Workflow pipeline states ────────────────────────────────── */
-const PIPELINE_STATES = [
+type AgentStatus = 'complete' | 'running' | 'queued'
+
+type PipelineRow = {
+  name: string
+  status: AgentStatus
+  task: string
+  tokens: string
+  ms: string | null
+}
+
+type StatusConfig = {
+  dotCls: string
+  text: string
+  label: string
+}
+
+const PIPELINE_STATES: PipelineRow[][] = [
   [
-    { name: 'Planner',    status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: null },
-    { name: 'Integrator',  status: 'running',  task: 'Searching vectors…', tokens: '—',     ms: null },
-    { name: 'Executor',    status: 'queued',   task: 'Awaiting retrieval', tokens: '—',     ms: null },
-    { name: 'Validator',   status: 'queued',   task: 'Awaiting pipeline',  tokens: '—',     ms: null },
-    { name: 'Dispatcher',  status: 'queued',   task: 'Awaiting pipeline',  tokens: '—',     ms: null },
+    { name: 'Planner',    status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: null   },
+    { name: 'Integrator', status: 'running',  task: 'Searching vectors…', tokens: '—',     ms: null   },
+    { name: 'Executor',   status: 'queued',   task: 'Awaiting retrieval', tokens: '—',     ms: null   },
+    { name: 'Validator',  status: 'queued',   task: 'Awaiting pipeline',  tokens: '—',     ms: null   },
+    { name: 'Dispatcher', status: 'queued',   task: 'Awaiting pipeline',  tokens: '—',     ms: null   },
   ],
   [
     { name: 'Planner',    status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: '312ms' },
-    { name: 'Integrator',  status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
-    { name: 'Executor',    status: 'running',  task: 'API calls (2 / 5)…', tokens: '—',     ms: null   },
-    { name: 'Validator',   status: 'queued',   task: 'Awaiting executor',  tokens: '—',     ms: null   },
-    { name: 'Dispatcher',  status: 'queued',   task: 'Awaiting executor',  tokens: '—',     ms: null   },
+    { name: 'Integrator', status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
+    { name: 'Executor',   status: 'running',  task: 'API calls (2 / 5)…', tokens: '—',     ms: null   },
+    { name: 'Validator',  status: 'queued',   task: 'Awaiting executor',  tokens: '—',     ms: null   },
+    { name: 'Dispatcher', status: 'queued',   task: 'Awaiting executor',  tokens: '—',     ms: null   },
   ],
   [
     { name: 'Planner',    status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: '312ms' },
-    { name: 'Integrator',  status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
-    { name: 'Executor',    status: 'complete', task: 'All APIs resolved',  tokens: '4,217', ms: '891ms' },
-    { name: 'Validator',   status: 'running',  task: 'Evaluating output…', tokens: '—',     ms: null   },
-    { name: 'Dispatcher',  status: 'queued',   task: 'Awaiting validation', tokens: '—',     ms: null   },
+    { name: 'Integrator', status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
+    { name: 'Executor',   status: 'complete', task: 'All APIs resolved',  tokens: '4,217', ms: '891ms' },
+    { name: 'Validator',  status: 'running',  task: 'Evaluating output…', tokens: '—',     ms: null   },
+    { name: 'Dispatcher', status: 'queued',   task: 'Awaiting validation',tokens: '—',     ms: null   },
   ],
   [
     { name: 'Planner',    status: 'complete', task: 'Query decomposed',   tokens: '1,247', ms: '312ms' },
-    { name: 'Integrator',  status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
-    { name: 'Executor',    status: 'complete', task: 'All APIs resolved',  tokens: '4,217', ms: '891ms' },
-    { name: 'Validator',   status: 'complete', task: 'Score 0.94 · Pass',  tokens: '892',   ms: '204ms' },
-    { name: 'Dispatcher',  status: 'running',  task: 'Routing to App/API',  tokens: '—',     ms: null   },
+    { name: 'Integrator', status: 'complete', task: 'Found 12 chunks',    tokens: '3,104', ms: '548ms' },
+    { name: 'Executor',   status: 'complete', task: 'All APIs resolved',  tokens: '4,217', ms: '891ms' },
+    { name: 'Validator',  status: 'complete', task: 'Score 0.94 · Pass',  tokens: '892',   ms: '204ms' },
+    { name: 'Dispatcher', status: 'running',  task: 'Routing to App/API', tokens: '—',     ms: null   },
   ],
 ]
 
-const STATUS = {
-  complete: { dotCls: 'bg-teal-500',   text: 'text-teal-600',   label: 'Complete' },
-  running:  { dotCls: 'dot-amber',      text: 'text-amber-600',  label: 'Running'  },
-  queued:   { dotCls: 'bg-zinc-300',    text: 'text-zinc-400',   label: 'Queued'   },
+const STATUS: Record<AgentStatus, StatusConfig> = {
+  complete: { dotCls: 'bg-teal-500',  text: 'text-teal-600',  label: 'Complete' },
+  running:  { dotCls: 'dot-amber',    text: 'text-amber-600', label: 'Running'  },
+  queued:   { dotCls: 'bg-zinc-300',  text: 'text-zinc-400',  label: 'Queued'   },
 }
 
 function AgentWorkflow() {
-  const [stateIdx, setStateIdx] = useState(0)
+  const [stateIdx, setStateIdx] = useState<number>(0)
+
   useEffect(() => {
     const id = setInterval(() => setStateIdx(i => (i + 1) % PIPELINE_STATES.length), 2200)
     return () => clearInterval(id)
@@ -50,7 +68,7 @@ function AgentWorkflow() {
   const completed = rows.filter(r => r.status === 'complete').length
   const totalTokens = rows
     .filter(r => r.tokens !== '—')
-    .reduce((a, r) => a + parseInt(r.tokens.replace(',', '') || 0, 10), 0)
+    .reduce((a, r) => a + parseInt(r.tokens.replace(',', '') || '0', 10), 0)
     .toLocaleString()
 
   return (
@@ -159,17 +177,18 @@ export default function Hero() {
             </motion.div>
 
             {/* Headline */}
-           <motion.h1
-            {...fadeUp(0.08)}
-            className="text-[2rem] xs:text-[2.1rem] sm:text-5xl lg:text-[3.2rem] font-black leading-[1.1] tracking-[-0.02em] text-zinc-900 sm:text-balance">
-            <span className="block sm:inline">Ingeniería de Software</span>{' '}
-            <span className="block sm:inline">e Integración de</span>{' '}
-            <span className="text-gradient-teal inline decoration-clone break-all sm:inline-block">
-              Inteligencia Artificial
-            </span>{' '}
-            <span className="block sm:inline">para la Próxima</span>{' '}
-            <span className="block sm:inline">Generación de Empresas</span>
-          </motion.h1>
+            <motion.h1
+              {...fadeUp(0.08)}
+              className="text-[2rem] xs:text-[2.1rem] sm:text-5xl lg:text-[3.2rem] font-black leading-[1.1] tracking-[-0.02em] text-zinc-900 sm:text-balance"
+            >
+              <span className="block sm:inline">Ingeniería de Software</span>{' '}
+              <span className="block sm:inline">e Integración de</span>{' '}
+              <span className="text-gradient-teal inline decoration-clone break-all sm:inline-block">
+                Inteligencia Artificial
+              </span>{' '}
+              <span className="block sm:inline">para la Próxima</span>{' '}
+              <span className="block sm:inline">Generación de Empresas</span>
+            </motion.h1>
 
             {/* Sub */}
             <motion.p {...fadeUp(0.15)} className="text-[15px] text-zinc-500 leading-relaxed max-w-lg">
@@ -180,9 +199,9 @@ export default function Hero() {
             {/* Metrics */}
             <motion.div {...fadeUp(0.22)} className="flex gap-8 pt-1">
               {[
-                { value: '10×',  label: 'Aumento en capacidad operativa' },
-                { value: '99.9%',  label: 'Disponibilidad de plataforma' },
-                { value: '80%', label: 'Reducción en Time-to-Market' },
+                { value: '10×',   label: 'Aumento en capacidad operativa' },
+                { value: '99.9%', label: 'Disponibilidad de plataforma'   },
+                { value: '80%',   label: 'Reducción en Time-to-Market'    },
               ].map(m => (
                 <div key={m.label} className="flex flex-col gap-0.5">
                   <span className="text-xl font-black text-zinc-900 font-mono tabular-nums">{m.value}</span>

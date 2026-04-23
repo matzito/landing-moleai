@@ -1,45 +1,67 @@
+'use client'
+
 import { useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 
-// ─── Layout constants ────────────────────────────────────────────
-const NH  = 42    // node height
-const NS  = 51    // node step (height + gap)
-const NY0 = 55    // first node top-y
-const NW  = 200   // node width
-const NX_L = 10   // left col x
-const NX_R = 734  // right col x  (= 960 - 10 - 216)
+// ─── Layout constants ────────────────────────────────────────────────────────
+const NH  = 42
+const NS  = 51
+const NY0 = 55
+const NW  = 200
+const NX_L = 10
+const NX_R = 734
 
-const nodeCY = (i) => NY0 + i * NS + NH / 2
+const nodeCY = (i: number): number => NY0 + i * NS + NH / 2
 
-const LEFT_NODES = [
-  { id: 'app',  label: 'Proprietary Mobile/Web Apps', type: 'phone',      connLabel: 'HTTPS/2'  },
-  { id: 'ecom', label: 'E-commerce Infrastructure',   type: 'database'                          },
-  { id: 'log',  label: 'Logistics Data Assets',       type: 'building',   connLabel: 'REST'     },
-  { id: 'hub',  label: 'Unified Communication Hubs',  type: 'globe'                             },
+type HighlightColor = 'teal' | 'orange'
+
+type IconType =
+  | 'phone' | 'globe' | 'database' | 'zap' | 'salesforce' | 'buoy' | 'building'
+  | 'layers' | 'bell' | 'lock' | 'hubspot' | 'layout' | 'chart' | 'webhook'
+
+type NodeDef = {
+  id: string
+  label: string
+  type: IconType
+  hl?: HighlightColor
+  connLabel?: string
+}
+
+const LEFT_NODES: NodeDef[] = [
+  { id: 'app',  label: 'Proprietary Mobile/Web Apps', type: 'phone',    connLabel: 'HTTPS/2' },
+  { id: 'ecom', label: 'E-commerce Infrastructure',   type: 'database'                       },
+  { id: 'log',  label: 'Logistics Data Assets',       type: 'building', connLabel: 'REST'    },
+  { id: 'hub',  label: 'Unified Communication Hubs',  type: 'globe'                          },
   { id: 'sf',   label: 'Salesforce Enterprise Core',  type: 'salesforce', hl: 'teal', connLabel: 'OAuth2' },
-  { id: 'tkt',  label: 'Service Ticket Pipelines',    type: 'buoy'                              },
-  { id: 'erp',  label: 'Enterprise Legacy / ERP',     type: 'zap',        connLabel: 'gRPC'     },
-]
-const RIGHT_NODES = [
-  { id: 'msrv',  label: 'Scalable Microservices',    type: 'layers'                              },
-  { id: 'notif', label: 'Push Notifications / SMS',  type: 'bell',      connLabel: 'encrypted'  },
-  { id: 'gate',  label: 'Enterprise API Gateway',    type: 'lock',      connLabel: 'gRPC'       },
-  { id: 'hs',    label: 'HubSpot Ecosystem',         type: 'hubspot',   hl: 'orange', connLabel: 'OAuth2' },
-  { id: 'dash',  label: 'Custom Admin Dashboard',    type: 'layout'                              },
-  { id: 'bi',    label: 'BI & Analytics Reporting',  type: 'chart'                               },
-  { id: 'webh',  label: 'Secure Event Webhooks',     type: 'webhook',   connLabel: 'mTLS'       },
+  { id: 'tkt',  label: 'Service Ticket Pipelines',    type: 'buoy'                           },
+  { id: 'erp',  label: 'Enterprise Legacy / ERP',     type: 'zap',      connLabel: 'gRPC'   },
 ]
 
-// ─── SVG icon library (16 × 16 coordinate space, translate to position) ────
-function SvgIcon({ type, cx, cy }) {
+const RIGHT_NODES: NodeDef[] = [
+  { id: 'msrv',  label: 'Scalable Microservices',   type: 'layers'                           },
+  { id: 'notif', label: 'Push Notifications / SMS', type: 'bell',    connLabel: 'encrypted' },
+  { id: 'gate',  label: 'Enterprise API Gateway',   type: 'lock',    connLabel: 'gRPC'      },
+  { id: 'hs',    label: 'HubSpot Ecosystem',        type: 'hubspot', hl: 'orange', connLabel: 'OAuth2' },
+  { id: 'dash',  label: 'Custom Admin Dashboard',   type: 'layout'                          },
+  { id: 'bi',    label: 'BI & Analytics Reporting', type: 'chart'                           },
+  { id: 'webh',  label: 'Secure Event Webhooks',    type: 'webhook', connLabel: 'mTLS'      },
+]
+
+// ─── SVG Icon Library ─────────────────────────────────────────────────────────
+interface SvgIconProps {
+  type: IconType
+  cx: number
+  cy: number
+}
+
+function SvgIcon({ type, cx, cy }: SvgIconProps) {
   const t = `translate(${cx - 8},${cy - 8})`
-  const base = { fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round', strokeWidth: '1.35' }
+  const base = { fill: 'none', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, strokeWidth: '1.35' }
   const dim  = { stroke: '#52525b', ...base }
   const teal = { stroke: '#14b8a6', ...base }
   const org  = { stroke: '#f97316', ...base }
 
   switch (type) {
-    // LEFT COL ICONS
     case 'phone': return (
       <g transform={t} {...dim}>
         <rect x="3" y="1" width="10" height="14" rx="2" />
@@ -87,8 +109,6 @@ function SvgIcon({ type, cx, cy }) {
         <line x1="5" y1="10" x2="6" y2="10" /><line x1="10" y1="10" x2="11" y2="10" />
       </g>
     )
-
-    // RIGHT COL ICONS
     case 'layers': return (
       <g transform={t} {...dim}>
         <polygon points="8 1 1 4.5 8 8 15 4.5 8 1" />
@@ -140,22 +160,22 @@ function SvgIcon({ type, cx, cy }) {
   }
 }
 
-// ─── Main SVG Diagram ────────────────────────────────────────────
+// ─── Main SVG Diagram ─────────────────────────────────────────────────────────
 function ArchDiagram() {
-  const [sel, setSel] = useState(null)
-  const [hov, setHov] = useState(null)
-  const [hovItem, setHovItem] = useState(null) // which checklist row is hovered (0|1|2|null)
-  const toggle = (key) => setSel(p => p === key ? null : key)
+  const [sel, setSel]         = useState<string | null>(null)
+  const [hov, setHov]         = useState<string | null>(null)
+  const [hovItem, setHovItem] = useState<number | null>(null)
 
-  // Computed positions
-  const busL   = 250   // left vertical bus x
-  const hubX   = 295   // hub left edge — wider gap from bus (was 270)
-  const hubW   = 370   // hub width — smaller (was 420)
-  const hubX2  = hubX + hubW  // = 665
-  const busR   = 710   // right vertical bus x
+  const toggle = (key: string) => setSel(p => p === key ? null : key)
+
+  const busL  = 250
+  const hubX  = 295
+  const hubW  = 370
+  const hubX2 = hubX + hubW
+  const busR  = 710
   const busTop = nodeCY(0)
   const busBot = nodeCY(6)
-  const midY   = (busTop + busBot) / 2  // ≈ 283 — hub center line
+  const midY   = (busTop + busBot) / 2
 
   return (
     <svg
@@ -167,14 +187,10 @@ function ArchDiagram() {
     >
       <title id="arch-svg-title">Mole AI Agent Orchestration Architecture</title>
       <desc id="arch-svg-desc">
-        Diagram showing left-side integrations (E-commerce APIs, Logistics Databases,
-        Web Scraper Targets, Communication Hubs, Salesforce Records, Customer Tickets,
-        File Uploads) feeding into the Mole AI orchestration hub, which outputs to
-        Zapier, Slack, HTTP API, HubSpot, Intercom, Mailgun, and Webhooks.
+        Diagram showing left-side integrations feeding into the Mole AI orchestration hub, which outputs to right-side services.
       </desc>
 
       <defs>
-        {/* Glow filters */}
         <filter id="glow-teal" x="-40%" y="-40%" width="180%" height="180%">
           <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#14b8a6" floodOpacity="0.55"/>
         </filter>
@@ -184,98 +200,44 @@ function ArchDiagram() {
         <filter id="glow-hub" x="-10%" y="-10%" width="120%" height="120%">
           <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#14b8a6" floodOpacity="0.2"/>
         </filter>
-
-        {/* Hub header gradient */}
         <linearGradient id="hub-header-bg" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%"   stopColor="#0d9488"/>
           <stop offset="100%" stopColor="#0f766e"/>
         </linearGradient>
-
-        {/* Light gradient for hub body */}
         <linearGradient id="hub-body-bg" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"   stopColor="#ffffff"/>
           <stop offset="100%" stopColor="#f8f9fa"/>
         </linearGradient>
-
-        {/* Arrowhead markers */}
         <marker id="arrow-teal" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
           <path d="M0 0L7 3.5L0 7z" fill="#14b8a6" opacity="0.9"/>
         </marker>
         <marker id="arrow-purple" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
           <path d="M0 0L7 3.5L0 7z" fill="#0369a1" opacity="0.7"/>
         </marker>
-
-        {/* Mole network icon symbol */}
-        <symbol id="mole-net" viewBox="0 0 48 32">
-          <circle cx="24" cy="16" r="3.5" fill="none" stroke="white" strokeWidth="1.5"/>
-          <circle cx="8"  cy="8"  r="2.5" fill="none" stroke="white" strokeWidth="1.2"/>
-          <circle cx="40" cy="8"  r="2.5" fill="none" stroke="white" strokeWidth="1.2"/>
-          <circle cx="8"  cy="24" r="2.5" fill="none" stroke="white" strokeWidth="1.2"/>
-          <circle cx="40" cy="24" r="2.5" fill="none" stroke="white" strokeWidth="1.2"/>
-          <circle cx="24" cy="4"  r="2"   fill="none" stroke="white" strokeWidth="1.2" opacity=".7"/>
-          <circle cx="24" cy="28" r="2"   fill="none" stroke="white" strokeWidth="1.2" opacity=".7"/>
-          <line x1="24" y1="12.5" x2="10"  y2="9.5"  stroke="white" strokeWidth="1" opacity=".6"/>
-          <line x1="24" y1="12.5" x2="38"  y2="9.5"  stroke="white" strokeWidth="1" opacity=".6"/>
-          <line x1="24" y1="19.5" x2="10"  y2="23"   stroke="white" strokeWidth="1" opacity=".6"/>
-          <line x1="24" y1="19.5" x2="38"  y2="23"   stroke="white" strokeWidth="1" opacity=".6"/>
-          <line x1="24" y1="12.5" x2="24"  y2="6"    stroke="white" strokeWidth="1" opacity=".5"/>
-          <line x1="24" y1="19.5" x2="24"  y2="26"   stroke="white" strokeWidth="1" opacity=".5"/>
-          <text x="24" y="20.5" textAnchor="middle" fontSize="7" fontWeight="700" fill="white" fontFamily="Inter, sans-serif">AI</text>
-        </symbol>
-      </defs>
-
-      {/* ─── Background ──────────────────────────────────────── */}
-      <rect width="960" height="452" rx="0" fill="#f8f9fa"/>
-
-      {/* Subtle dot grid */}
-      <defs>
         <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
           <circle cx="1" cy="1" r=".7" fill="#d4d4d8"/>
         </pattern>
       </defs>
+
+      <rect width="960" height="452" rx="0" fill="#f8f9fa"/>
       <rect width="960" height="452" fill="url(#dots)" opacity="1"/>
 
-      {/* ─── Central horizontal teal line (data highway) ─────── */}
-      <line
-        x1={busL} y1={midY} x2={busR} y2={midY}
-        stroke="#14b8a6" strokeWidth="1.5" opacity="0.25"
-        strokeDasharray="6 4"
-      />
-      {/* Highway label pill */}
-      <rect x="441" y={midY - 10} width="78" height="13" rx="4"
-        fill="#f0fdf9" stroke="#14b8a6" strokeWidth="0.75" opacity="0.9"/>
-      <text x="480" y={midY - 0.5}
-        textAnchor="middle"
-        fontFamily="'JetBrains Mono', 'Courier New', monospace"
-        fontSize="6.5" fontWeight="600" fill="#0d9488">
+      {/* Central data highway */}
+      <line x1={busL} y1={midY} x2={busR} y2={midY} stroke="#14b8a6" strokeWidth="1.5" opacity="0.25" strokeDasharray="6 4"/>
+      <rect x="441" y={midY - 10} width="78" height="13" rx="4" fill="#f0fdf9" stroke="#14b8a6" strokeWidth="0.75" opacity="0.9"/>
+      <text x="480" y={midY - 0.5} textAnchor="middle" fontFamily="'JetBrains Mono', 'Courier New', monospace" fontSize="6.5" fontWeight="600" fill="#0d9488">
         protocol: gRPC · TLS 1.3
       </text>
 
-      {/* ─── Left vertical bus ───────────────────────────────── */}
-      <line
-        x1={busL} y1={busTop} x2={busL} y2={busBot}
-        stroke="#0369a1" strokeWidth="1" strokeDasharray="3 2" opacity="0.5"
-      />
-      {/* Bus → Hub arrow */}
-      <line
-        x1={busL} y1={midY} x2={hubX - 6} y2={midY}
-        stroke="#14b8a6" strokeWidth="1" opacity="0.9"
-        markerEnd="url(#arrow-teal)"
-      />
+      {/* Left vertical bus */}
+      <line x1={busL} y1={busTop} x2={busL} y2={busBot} stroke="#0369a1" strokeWidth="1" strokeDasharray="3 2" opacity="0.5"/>
+      <line x1={busL} y1={midY} x2={hubX - 6} y2={midY} stroke="#14b8a6" strokeWidth="1" opacity="0.9" markerEnd="url(#arrow-teal)"/>
 
-      {/* ─── Right vertical bus ──────────────────────────────── */}
-      <line
-        x1={busR} y1={busTop} x2={busR} y2={busBot}
-        stroke="#0369a1" strokeWidth="1" strokeDasharray="3 2" opacity="0.5"
-      />
-      {/* Hub → Bus arrow */}
-      <line
-        x1={hubX2 + 2} y1={midY} x2={busR - 6} y2={midY}
-        stroke="#14b8a6" strokeWidth="1" opacity="0.9"
-        markerEnd="url(#arrow-teal)"
-      />
+      {/* Right vertical bus */}
+      <line x1={busR} y1={busTop} x2={busR} y2={busBot} stroke="#0369a1" strokeWidth="1" strokeDasharray="3 2" opacity="0.5"/>
+      <line x1={hubX2 + 2} y1={midY} x2={busR - 6} y2={midY} stroke="#14b8a6" strokeWidth="1" opacity="0.9" markerEnd="url(#arrow-teal)"/>
 
-      {/* ─── Left nodes ──────────────────────────────────────── */}
+      {/* Left nodes */}
       {LEFT_NODES.map((node, i) => {
         const y       = NY0 + i * NS
         const cy      = y + NH / 2
@@ -286,7 +248,6 @@ function ArchDiagram() {
         const hovered = hov === nodeKey
         return (
           <g key={node.id} onClick={() => toggle(nodeKey)} style={{ cursor: 'pointer' }}>
-            {/* Connection line — stays fixed, outside the scale group */}
             <line
               x1={NX_L + NW} y1={cy} x2={busL} y2={cy}
               stroke={active ? '#14b8a6' : '#0369a1'}
@@ -302,24 +263,19 @@ function ArchDiagram() {
                 {node.connLabel}
               </text>
             )}
-            {/* Card group — scales on hover, origin = card center */}
             <g
               onMouseEnter={() => setHov(nodeKey)}
               onMouseLeave={() => setHov(null)}
               style={{
                 transform: hovered ? 'scale(1.04)' : 'scale(1)',
-                transformBox: 'fill-box',
+                transformBox: 'fill-box' as React.CSSProperties['transformBox'],
                 transformOrigin: 'center',
                 transition: 'transform 0.15s ease',
               }}
             >
               <rect
                 x={NX_L} y={y} width={NW} height={NH} rx="7"
-                fill={
-                  active
-                    ? (isTeal ? 'rgba(13,148,136,0.24)' : 'rgba(13,148,136,0.13)')
-                    : isTeal ? 'rgba(13,148,136,0.08)' : '#ffffff'
-                }
+                fill={active ? (isTeal ? 'rgba(13,148,136,0.24)' : 'rgba(13,148,136,0.13)') : isTeal ? 'rgba(13,148,136,0.08)' : '#ffffff'}
                 stroke={active || isTeal ? '#0d9488' : '#d4d4d8'}
                 strokeWidth={active ? (isTeal ? 2.5 : 2) : isTeal ? 1.5 : 1}
                 filter={(active || isTeal) ? 'url(#glow-teal)' : undefined}
@@ -340,7 +296,7 @@ function ArchDiagram() {
         )
       })}
 
-      {/* ─── Right nodes ─────────────────────────────────────── */}
+      {/* Right nodes */}
       {RIGHT_NODES.map((node, i) => {
         const y       = NY0 + i * NS
         const cy      = y + NH / 2
@@ -351,7 +307,6 @@ function ArchDiagram() {
         const hovered = hov === nodeKey
         return (
           <g key={node.id} onClick={() => toggle(nodeKey)} style={{ cursor: 'pointer' }}>
-            {/* Connection line — outside scale group */}
             <line
               x1={busR} y1={cy} x2={NX_R} y2={cy}
               stroke={active ? (isOrg ? '#f97316' : '#14b8a6') : '#0369a1'}
@@ -367,24 +322,19 @@ function ArchDiagram() {
                 {node.connLabel}
               </text>
             )}
-            {/* Card group — scales on hover */}
             <g
               onMouseEnter={() => setHov(nodeKey)}
               onMouseLeave={() => setHov(null)}
               style={{
                 transform: hovered ? 'scale(1.04)' : 'scale(1)',
-                transformBox: 'fill-box',
+                transformBox: 'fill-box' as React.CSSProperties['transformBox'],
                 transformOrigin: 'center',
                 transition: 'transform 0.15s ease',
               }}
             >
               <rect
                 x={NX_R} y={y} width={NW} height={NH} rx="7"
-                fill={
-                  active
-                    ? (isOrg ? 'rgba(249,115,22,0.24)' : 'rgba(13,148,136,0.13)')
-                    : isOrg ? 'rgba(249,115,22,0.07)' : '#ffffff'
-                }
+                fill={active ? (isOrg ? 'rgba(249,115,22,0.24)' : 'rgba(13,148,136,0.13)') : isOrg ? 'rgba(249,115,22,0.07)' : '#ffffff'}
                 stroke={active ? (isOrg ? '#f97316' : '#0d9488') : isOrg ? '#f97316' : '#d4d4d8'}
                 strokeWidth={active ? (isOrg ? 2.5 : 2) : isOrg ? 1.5 : 1}
                 filter={(active || isOrg) ? `url(#glow-${isOrg ? 'orange' : 'teal'})` : undefined}
@@ -405,7 +355,7 @@ function ArchDiagram() {
         )
       })}
 
-      {/* ─── Central Hub ─────────────────────────────────────── */}
+      {/* Central Hub */}
       {(() => {
         const hx = hubX
         const hy = 28
@@ -414,16 +364,17 @@ function ArchDiagram() {
         const headerH = 72
         const bodyY = hy + headerH
 
-        const checkItems = [
-          { icon: '1', text: 'Coordina múltiples tareas a la vez'              },
-          { icon: '2', text: 'Toma decisiones lógicas y resuelve problemas'    },
-          { icon: '3', text: 'Mueve información entre todos tus sistemas'      },
+        type CheckItem = { icon: string; text: string }
+        const checkItems: CheckItem[] = [
+          { icon: '1', text: 'Coordina múltiples tareas a la vez'           },
+          { icon: '2', text: 'Toma decisiones lógicas y resuelve problemas' },
+          { icon: '3', text: 'Mueve información entre todos tus sistemas'   },
         ]
         const bodyH    = hh - headerH
         const itemStep = bodyH / (checkItems.length + 0.5)
 
-        const hubActive   = sel === 'hub'
-        const hubHovered  = hov === 'hub'
+        const hubActive  = sel === 'hub'
+        const hubHovered = hov === 'hub'
 
         return (
           <g
@@ -433,120 +384,85 @@ function ArchDiagram() {
             style={{
               cursor: 'pointer',
               transform: hubHovered ? 'scale(1.018)' : 'scale(1)',
-              transformBox: 'fill-box',
+              transformBox: 'fill-box' as React.CSSProperties['transformBox'],
               transformOrigin: 'center',
               transition: 'transform 0.2s ease',
             }}
           >
-          <g filter="url(#glow-hub)">
-            {/* Selection halo */}
-            {hubActive && (
-              <rect x={hx - 6} y={hy - 6} width={hw + 12} height={hh + 12} rx="19"
-                fill="none" stroke="#14b8a6" strokeWidth="1.5" opacity="0.45"
-                strokeDasharray="8 4"
+            <g filter="url(#glow-hub)">
+              {hubActive && (
+                <rect x={hx - 6} y={hy - 6} width={hw + 12} height={hh + 12} rx="19"
+                  fill="none" stroke="#14b8a6" strokeWidth="1.5" opacity="0.45" strokeDasharray="8 4"/>
+              )}
+              <rect x={hx} y={hy} width={hw} height={hh} rx="14" fill="url(#hub-body-bg)"/>
+              <clipPath id="hub-header-clip">
+                <rect x={hx} y={hy} width={hw} height={headerH + 20} rx="14"/>
+              </clipPath>
+              <rect x={hx} y={hy} width={hw} height={headerH} fill="url(#hub-header-bg)" clipPath="url(#hub-header-clip)"/>
+              <line x1={hx} y1={hy + headerH} x2={hx + hw} y2={hy + headerH} stroke="#0d9488" strokeWidth="1" opacity="0.5"/>
+              <rect x={hx} y={hy} width={hw} height={hh} rx="14" fill="none" stroke="#0d9488"
+                strokeWidth={hubActive ? 2.5 : 1.5}
+                opacity={hubActive ? 1 : 0.6}
+                style={{ transition: 'stroke-width 0.2s, opacity 0.2s' }}
               />
-            )}
+              <text x={hx + 20} y={hy + 33} fontFamily="Inter, system-ui, sans-serif" fontSize="16" fontWeight="800" fill="white" letterSpacing="-0.3">
+                Mole AI
+              </text>
+              <text x={hx + 20} y={hy + 50} fontFamily="Inter, system-ui, sans-serif" fontSize="9" fontWeight="400" fill="rgba(255,255,255,0.65)">
+                El Cerebro de Operaciones Digitales
+              </text>
+              <rect x={hx + hw - 48} y={hy + 18} width="32" height="32" rx="8" fill="rgba(0,0,0,0.25)" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
+              <text x={hx + hw - 32} y={hy + 40} textAnchor="middle" fontFamily="Inter, system-ui, sans-serif" fontSize="13" fontWeight="900" fill="white" letterSpacing="-0.4">
+                AI
+              </text>
 
-            {/* Hub body */}
-            <rect x={hx} y={hy} width={hw} height={hh} rx="14"
-              fill="url(#hub-body-bg)"/>
-
-            {/* Header clip */}
-            <clipPath id="hub-header-clip">
-              <rect x={hx} y={hy} width={hw} height={headerH + 20} rx="14"/>
-            </clipPath>
-            <rect x={hx} y={hy} width={hw} height={headerH}
-              fill="url(#hub-header-bg)" clipPath="url(#hub-header-clip)"/>
-
-            {/* Header separator */}
-            <line x1={hx} y1={hy + headerH} x2={hx + hw} y2={hy + headerH}
-              stroke="#0d9488" strokeWidth="1" opacity="0.5"/>
-
-            {/* Outer border */}
-            <rect x={hx} y={hy} width={hw} height={hh} rx="14"
-              fill="none" stroke="#0d9488"
-              strokeWidth={hubActive ? 2.5 : 1.5}
-              opacity={hubActive ? 1 : 0.6}
-              style={{ transition: 'stroke-width 0.2s, opacity 0.2s' }}/>
-
-            {/* Header text */}
-            <text x={hx + 20} y={hy + 33}
-              fontFamily="Inter, system-ui, sans-serif"
-              fontSize="16" fontWeight="800" fill="white" letterSpacing="-0.3">
-              Mole AI
-            </text>
-            <text x={hx + 20} y={hy + 50}
-              fontFamily="Inter, system-ui, sans-serif"
-              fontSize="9" fontWeight="400" fill="rgba(255,255,255,0.65)">
-              El Cerebro de Operaciones Digitales
-            </text>
-
-            {/* AI badge */}
-            <rect x={hx + hw - 48} y={hy + 18} width="32" height="32" rx="8"
-              fill="rgba(0,0,0,0.25)" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
-            <text x={hx + hw - 32} y={hy + 40}
-              textAnchor="middle"
-              fontFamily="Inter, system-ui, sans-serif"
-              fontSize="13" fontWeight="900" fill="white" letterSpacing="-0.4">
-              AI
-            </text>
-
-            {/* ── Checklist items ── */}
-            {checkItems.map(({ icon, text }, idx) => {
-              const iy      = bodyY + itemStep * (idx + 0.6)
-              const ix      = hx + 30
-              const itemHov = hovItem === idx
-              const ic      = itemHov ? '#f97316' : '#14b8a6'   // icon stroke color
-              const circleFill   = itemHov ? 'rgba(249,115,22,0.12)' : 'rgba(13,148,136,0.08)'
-              const circleStroke = itemHov ? '#f97316' : '#0d9488'
-              const textFill     = itemHov ? '#ea580c' : '#3f3f46'
-              const textWeight   = itemHov ? '600' : '500'
-
-              return (
-                <g
-                  key={icon}
-                  onMouseEnter={() => setHovItem(idx)}
-                  onMouseLeave={() => setHovItem(null)}
-                  style={{
-                    transform: itemHov ? 'scale(1.04)' : 'scale(1)',
-                    transformBox: 'fill-box',
-                    transformOrigin: 'center',
-                    transition: 'transform 0.15s ease',
-                    cursor: 'default',
-                  }}
-                >
-                  <circle cx={ix} cy={iy} r="14"
-                    fill={circleFill} stroke={circleStroke} strokeWidth="1" opacity="0.7"
-                    style={{ transition: 'fill 0.2s, stroke 0.2s' }}
-                  />
-                  <text
-                    x={ix} y={iy + 4.5}
-                    textAnchor="middle"
-                    fontFamily="'JetBrains Mono', 'Fira Code', monospace"
-                    fontSize="11" fontWeight="700" fill={ic}
-                    style={{ transition: 'fill 0.2s' }}
+              {checkItems.map(({ icon, text }, idx) => {
+                const iy      = bodyY + itemStep * (idx + 0.6)
+                const ix      = hx + 30
+                const itemHov = hovItem === idx
+                const ic      = itemHov ? '#f97316' : '#14b8a6'
+                const circleFill   = itemHov ? 'rgba(249,115,22,0.12)' : 'rgba(13,148,136,0.08)'
+                const circleStroke = itemHov ? '#f97316' : '#0d9488'
+                const textFill     = itemHov ? '#ea580c' : '#3f3f46'
+                const textWeight   = itemHov ? '600' : '500'
+                return (
+                  <g
+                    key={icon}
+                    onMouseEnter={() => setHovItem(idx)}
+                    onMouseLeave={() => setHovItem(null)}
+                    style={{
+                      transform: itemHov ? 'scale(1.04)' : 'scale(1)',
+                      transformBox: 'fill-box' as React.CSSProperties['transformBox'],
+                      transformOrigin: 'center',
+                      transition: 'transform 0.15s ease',
+                      cursor: 'default',
+                    }}
                   >
-                    {icon}
-                  </text>
-                  <text
-                    x={hx + 56} y={iy + 5}
-                    fontFamily="Inter, system-ui, sans-serif"
-                    fontSize="11" fontWeight={textWeight} fill={textFill}
-                    style={{ transition: 'fill 0.2s' }}
-                  >
-                    {text}
-                  </text>
-                  {idx < checkItems.length - 1 && (
-                    <line
-                      x1={hx + 20} y1={iy + itemStep / 2}
-                      x2={hx + hw - 20} y2={iy + itemStep / 2}
-                      stroke="#e4e4e7" strokeWidth="1"
+                    <circle cx={ix} cy={iy} r="14"
+                      fill={circleFill} stroke={circleStroke} strokeWidth="1" opacity="0.7"
+                      style={{ transition: 'fill 0.2s, stroke 0.2s' }}
                     />
-                  )}
-                </g>
-              )
-            })}
-          </g>
+                    <text x={ix} y={iy + 4.5} textAnchor="middle"
+                      fontFamily="'JetBrains Mono', 'Fira Code', monospace"
+                      fontSize="11" fontWeight="700" fill={ic}
+                      style={{ transition: 'fill 0.2s' }}
+                    >
+                      {icon}
+                    </text>
+                    <text x={hx + 56} y={iy + 5}
+                      fontFamily="Inter, system-ui, sans-serif"
+                      fontSize="11" fontWeight={textWeight} fill={textFill}
+                      style={{ transition: 'fill 0.2s' }}
+                    >
+                      {text}
+                    </text>
+                    {idx < checkItems.length - 1 && (
+                      <line x1={hx + 20} y1={iy + itemStep / 2} x2={hx + hw - 20} y2={iy + itemStep / 2} stroke="#e4e4e7" strokeWidth="1"/>
+                    )}
+                  </g>
+                )
+              })}
+            </g>
           </g>
         )
       })()}
@@ -554,12 +470,11 @@ function ArchDiagram() {
   )
 }
 
-// ─── Step card icons (detailed, 64×64 viewBox) ───────────────────
+// ─── Step card icons ──────────────────────────────────────────────────────────
 function BlueprintIcon() {
   return (
     <svg viewBox="0 0 64 64" className="w-12 h-12" fill="none" aria-hidden>
       <rect x="4" y="4" width="56" height="56" rx="8" fill="rgba(13,148,136,0.08)" stroke="#0d9488" strokeWidth="1.5" strokeDasharray="4 2"/>
-      {/* Ruler */}
       <rect x="10" y="44" width="44" height="8" rx="2" stroke="#0d9488" strokeWidth="1.5"/>
       <line x1="16" y1="44" x2="16" y2="52" stroke="#0d9488" strokeWidth="1"/>
       <line x1="22" y1="44" x2="22" y2="49" stroke="#0d9488" strokeWidth="1"/>
@@ -567,16 +482,13 @@ function BlueprintIcon() {
       <line x1="34" y1="44" x2="34" y2="49" stroke="#0d9488" strokeWidth="1"/>
       <line x1="40" y1="44" x2="40" y2="52" stroke="#0d9488" strokeWidth="1"/>
       <line x1="46" y1="44" x2="46" y2="49" stroke="#0d9488" strokeWidth="1"/>
-      {/* Gear */}
       <circle cx="32" cy="24" r="8" stroke="#0d9488" strokeWidth="1.5"/>
       <circle cx="32" cy="24" r="3" stroke="#0d9488" strokeWidth="1.5"/>
       <line x1="32" y1="12" x2="32" y2="16" stroke="#0d9488" strokeWidth="2"/>
       <line x1="32" y1="32" x2="32" y2="36" stroke="#0d9488" strokeWidth="2"/>
       <line x1="20" y1="24" x2="24" y2="24" stroke="#0d9488" strokeWidth="2"/>
       <line x1="40" y1="24" x2="44" y2="24" stroke="#0d9488" strokeWidth="2"/>
-      {/* Pencil */}
       <path d="M44 10l4 4-16 16h-4v-4Z" stroke="#0d9488" strokeWidth="1.5" strokeLinejoin="round"/>
-      {/* Shield */}
       <path d="M16 12v6c0 3 2 5 4 6 2-1 4-3 4-6v-6l-4-2Z" stroke="#0d9488" strokeWidth="1.5" strokeLinejoin="round"/>
     </svg>
   )
@@ -586,24 +498,20 @@ function OrchestrationIcon() {
   return (
     <svg viewBox="0 0 64 64" className="w-12 h-12" fill="none" aria-hidden>
       <rect x="4" y="4" width="56" height="56" rx="8" fill="rgba(13,148,136,0.08)" stroke="#0d9488" strokeWidth="1.5" strokeDasharray="4 2"/>
-      {/* Left gear */}
       <circle cx="20" cy="26" r="8" stroke="#0d9488" strokeWidth="1.5"/>
       <circle cx="20" cy="26" r="3" fill="rgba(13,148,136,0.2)" stroke="#0d9488" strokeWidth="1"/>
       <line x1="20" y1="14" x2="20" y2="18" stroke="#0d9488" strokeWidth="2"/>
       <line x1="20" y1="34" x2="20" y2="38" stroke="#0d9488" strokeWidth="2"/>
       <line x1="8"  y1="26" x2="12" y2="26" stroke="#0d9488" strokeWidth="2"/>
       <line x1="28" y1="26" x2="32" y2="26" stroke="#0d9488" strokeWidth="2"/>
-      {/* Right gear */}
       <circle cx="44" cy="38" r="8" stroke="#0d9488" strokeWidth="1.5"/>
       <circle cx="44" cy="38" r="3" fill="rgba(13,148,136,0.2)" stroke="#0d9488" strokeWidth="1"/>
       <line x1="44" y1="26" x2="44" y2="30" stroke="#0d9488" strokeWidth="2"/>
       <line x1="44" y1="46" x2="44" y2="50" stroke="#0d9488" strokeWidth="2"/>
       <line x1="32" y1="38" x2="36" y2="38" stroke="#0d9488" strokeWidth="2"/>
       <line x1="52" y1="38" x2="56" y2="38" stroke="#0d9488" strokeWidth="2"/>
-      {/* Connection arrow */}
       <path d="M28 28Q36 28 36 36" stroke="#0d9488" strokeWidth="1.5" strokeDasharray="3 2"/>
       <path d="M34 34l2 2 2-2" stroke="#0d9488" strokeWidth="1.5"/>
-      {/* Decision diamond */}
       <path d="M32 12l4 4-4 4-4-4Z" stroke="#0d9488" strokeWidth="1.5" strokeLinejoin="round"/>
     </svg>
   )
@@ -613,20 +521,16 @@ function DeployIcon() {
   return (
     <svg viewBox="0 0 64 64" className="w-12 h-12" fill="none" aria-hidden>
       <rect x="4" y="4" width="56" height="56" rx="8" fill="rgba(13,148,136,0.08)" stroke="#0d9488" strokeWidth="1.5" strokeDasharray="4 2"/>
-      {/* Server */}
       <rect x="8"  y="10" width="28" height="8" rx="2" stroke="#0d9488" strokeWidth="1.5"/>
       <rect x="8"  y="21" width="28" height="8" rx="2" stroke="#0d9488" strokeWidth="1.5"/>
       <rect x="8"  y="32" width="28" height="8" rx="2" stroke="#0d9488" strokeWidth="1.5"/>
-      <circle cx="32" cy="14"  r="1.5" fill="#0d9488"/>
-      <circle cx="32" cy="25"  r="1.5" fill="#0d9488"/>
-      <circle cx="32" cy="36"  r="1.5" fill="#0d9488"/>
-      {/* Performance graph */}
+      <circle cx="32" cy="14" r="1.5" fill="#0d9488"/>
+      <circle cx="32" cy="25" r="1.5" fill="#0d9488"/>
+      <circle cx="32" cy="36" r="1.5" fill="#0d9488"/>
       <rect x="40" y="26" width="18" height="14" rx="2" stroke="#0d9488" strokeWidth="1.5"/>
       <polyline points="42,36 46,30 50,34 54,28 56,32" stroke="#0d9488" strokeWidth="1.5" strokeLinejoin="round"/>
-      {/* Magnifier */}
       <circle cx="48" cy="14" r="5" stroke="#0d9488" strokeWidth="1.5"/>
       <line x1="52" y1="18" x2="56" y2="22" stroke="#0d9488" strokeWidth="2" strokeLinecap="round"/>
-      {/* Clipboard */}
       <rect x="8" y="44" width="18" height="14" rx="2" stroke="#0d9488" strokeWidth="1.5"/>
       <line x1="8" y1="50" x2="26" y2="50" stroke="#0d9488" strokeWidth="1" opacity="0.5"/>
       <path d="M11 54l2 2 5-5" stroke="#0d9488" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -634,8 +538,17 @@ function DeployIcon() {
   )
 }
 
-// ─── Step card component ─────────────────────────────────────────
-function StepCard({ number, title, description, Icon, index, inView }) {
+// ─── Step card component ──────────────────────────────────────────────────────
+interface StepCardProps {
+  number: string
+  title: string
+  description: string
+  Icon: React.ComponentType
+  index: number
+  inView: boolean
+}
+
+function StepCard({ number, title, description, Icon, index, inView }: StepCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -660,29 +573,25 @@ function StepCard({ number, title, description, Icon, index, inView }) {
   )
 }
 
-// ─── Main section ────────────────────────────────────────────────
+// ─── Main section ─────────────────────────────────────────────────────────────
 export default function ArchitectureSection() {
-  const diagramRef    = useRef(null)
+  const diagramRef    = useRef<HTMLDivElement>(null)
   const diagramInView = useInView(diagramRef, { once: true, margin: '-40px' })
 
   return (
     <section id="architecture" className="py-28 px-6 border-b border-zinc-200">
       <div className="max-w-7xl mx-auto flex flex-col gap-12">
 
-        {/* Section label */}
         <div className="flex flex-col gap-2">
           <span className="text-[11px] font-mono font-semibold tracking-widest uppercase text-zinc-400">
             Ecosystem Architecture
           </span>
-          <h2
-            className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 leading-tight"
-          >
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 leading-tight">
             Integraciones nativas,{' '}
             <span className="text-gradient-teal">orquestación determinista.</span>
           </h2>
         </div>
 
-        {/* Diagram panel */}
         <motion.div
           ref={diagramRef}
           initial={{ opacity: 0, y: 24 }}
@@ -694,15 +603,12 @@ export default function ArchitectureSection() {
         >
           {/* Diagram header bar */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-100 bg-zinc-50 gap-4 flex-wrap">
-            {/* Traffic lights + filename */}
             <div className="flex items-center gap-3 flex-shrink-0">
               <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F56]"/>
               <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]"/>
               <span className="w-2.5 h-2.5 rounded-full bg-[#27C93F]"/>
               <span className="text-[11px] font-mono text-zinc-400 ml-1">architecture.live</span>
             </div>
-
-            {/* Env metadata */}
             <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono">
               <span className="text-zinc-400">env:</span>
               <span className="text-teal-600 font-semibold">production</span>
@@ -713,8 +619,6 @@ export default function ArchitectureSection() {
               <span className="text-zinc-300">·</span>
               <span className="text-zinc-400">region: <span className="text-zinc-600">Azure-West-US</span></span>
             </div>
-
-            {/* Live + counts */}
             <div className="flex items-center gap-4 flex-shrink-0">
               <div className="flex items-center gap-1.5">
                 <span className="dot-teal"/>
@@ -727,7 +631,6 @@ export default function ArchitectureSection() {
             </div>
           </div>
 
-          {/* SVG diagram — allows horizontal scroll on small screens */}
           <div className="overflow-x-auto">
             <div className="min-w-[700px] p-2">
               <ArchDiagram/>
@@ -737,18 +640,14 @@ export default function ArchitectureSection() {
           {/* Legend */}
           <div className="flex flex-wrap items-center gap-5 px-5 py-3 border-t border-zinc-100 bg-zinc-50">
             {[
-              { color: '#0369a1', dash: true,  label: 'Data connections' },
-              { color: '#14b8a6', dash: false, label: 'Orchestration flow' },
-              { color: '#14b8a6', dash: false, label: 'Highlighted integration', glow: true },
-              { color: '#f97316', dash: false, label: 'Highlighted output', glow: true, org: true },
+              { color: '#0369a1', dash: true,  label: 'Data connections'          },
+              { color: '#14b8a6', dash: false, label: 'Orchestration flow'         },
+              { color: '#14b8a6', dash: false, label: 'Highlighted integration'    },
+              { color: '#f97316', dash: false, label: 'Highlighted output'         },
             ].map(item => (
               <div key={item.label} className="flex items-center gap-2">
                 <svg width="24" height="8">
-                  <line
-                    x1="0" y1="4" x2="24" y2="4"
-                    stroke={item.color} strokeWidth="2"
-                    strokeDasharray={item.dash ? '3 2' : undefined}
-                  />
+                  <line x1="0" y1="4" x2="24" y2="4" stroke={item.color} strokeWidth="2" strokeDasharray={item.dash ? '3 2' : undefined}/>
                 </svg>
                 <span className="text-[10px] font-mono text-zinc-600">{item.label}</span>
               </div>

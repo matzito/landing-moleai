@@ -1,24 +1,15 @@
-/**
- * 3×3 grid logo forming an "M" shape.
- *
- * Grid math (viewBox 40×40):
- *   padding = 5  |  tileSize = 8  |  gap = 3
- *   col x: 0→5  1→16  2→27
- *   row y: 0→5  1→16  2→27
- *
- * M pattern  (■ = filled, · = inactive):
- *   ■ · ■
- *   ■ ■ ■
- *   ■ · ■
- */
+interface LogoMarkProps {
+  size?: number
+  className?: string
+}
 
-const ALL_TILES = [
+const ALL_TILES: [number, number][] = [
   [0, 0], [0, 1], [0, 2],
   [1, 0], [1, 1], [1, 2],
   [2, 0], [2, 1], [2, 2],
 ]
 
-const ACTIVE = new Set(['0-0', '0-2', '1-0', '1-1', '1-2', '2-0', '2-2'])
+const ACTIVE = new Set<string>(['0-0', '0-2', '1-0', '1-1', '1-2', '2-0', '2-2'])
 
 const PAD     = 5
 const TILE    = 8
@@ -26,7 +17,7 @@ const GAP     = 3
 const TILE_RX = 1.8
 const VIEWBOX = 40
 
-export default function LogoMark({ size = 28, className = '' }) {
+export default function LogoMark({ size = 28, className = '' }: LogoMarkProps) {
   return (
     <svg
       width={size}
@@ -36,17 +27,7 @@ export default function LogoMark({ size = 28, className = '' }) {
       className={className}
       aria-label="Mole Engineering logo"
     >
-      {/* Squircle background */}
-      <rect
-        width={VIEWBOX}
-        height={VIEWBOX}
-        rx="9"
-        fill="white"
-        stroke="#e4e4e7"
-        strokeWidth="0.9"
-      />
-
-      {/* All 9 tiles — active teal, inactive muted */}
+      <rect width={VIEWBOX} height={VIEWBOX} rx="9" fill="white" stroke="#e4e4e7" strokeWidth="0.9" />
       {ALL_TILES.map(([row, col]) => {
         const key    = `${row}-${col}`
         const active = ACTIVE.has(key)

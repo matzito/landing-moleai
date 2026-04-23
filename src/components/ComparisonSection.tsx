@@ -1,31 +1,44 @@
+'use client'
+
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 
-const ROWS = [
-  { feature: 'Time-to-value',         traditional: '6 – 12 meses',                           moleai: '< 10 Días prototipo funcional' },
-  { feature: 'Integración de Sistemas', traditional: 'Conexiones manuales vía Webhooks/APIs rígidas.',           moleai: 'Integración fluida y determinista con el stack empresarial (ERP, CRM, Legacy).' },
-  { feature: 'Escalabilidad',         traditional: 'Limitada por headcount de equipo',         moleai: 'Infinita — los agentes escalan solos' },
-  { feature: 'Observabilidad',        traditional: 'Manual, post-mortem, logs dispersos',      moleai: 'Instrumentada en runtime (tokens, latencia, scores)' },
-  { feature: 'Integración LLM',       traditional: 'Plug-in externo, sin diseño de contexto',  moleai: 'Arquitectura nativa con fallback routing' },
-  { feature: 'Costo de mantenimiento',traditional: 'Alto — requiere equipo dedicado',          moleai: 'Self-healing pipelines con evaluadores internos' },
-  { feature: 'Entrega de conocimiento',traditional: 'Documentación estática al cierre',        moleai: 'Runbook vivo + transferencia de ownership' },
-  { feature: 'Modelo de entrega',     traditional: 'Desarrollo de silos aislados (App por un lado, DB por otro).',           moleai: 'Ecosistema unificado: App + Cloud + Orquestación de Agentes.' },
-  { feature: 'Alcance de la Solución',  traditional: 'Software estático que requiere intervención humana.',           moleai: 'Software dinámico que razona, ejecuta y valida procesos.' },
+type ComparisonRow = {
+  feature: string
+  traditional: string
+  moleai: string
+}
+
+const ROWS: ComparisonRow[] = [
+  { feature: 'Time-to-value',          traditional: '6 – 12 meses',                                                     moleai: '< 10 Días prototipo funcional' },
+  { feature: 'Integración de Sistemas', traditional: 'Conexiones manuales vía Webhooks/APIs rígidas.',                   moleai: 'Integración fluida y determinista con el stack empresarial (ERP, CRM, Legacy).' },
+  { feature: 'Escalabilidad',          traditional: 'Limitada por headcount de equipo',                                  moleai: 'Infinita — los agentes escalan solos' },
+  { feature: 'Observabilidad',         traditional: 'Manual, post-mortem, logs dispersos',                               moleai: 'Instrumentada en runtime (tokens, latencia, scores)' },
+  { feature: 'Integración LLM',        traditional: 'Plug-in externo, sin diseño de contexto',                           moleai: 'Arquitectura nativa con fallback routing' },
+  { feature: 'Costo de mantenimiento', traditional: 'Alto — requiere equipo dedicado',                                   moleai: 'Self-healing pipelines con evaluadores internos' },
+  { feature: 'Entrega de conocimiento',traditional: 'Documentación estática al cierre',                                  moleai: 'Runbook vivo + transferencia de ownership' },
+  { feature: 'Modelo de entrega',      traditional: 'Desarrollo de silos aislados (App por un lado, DB por otro).',      moleai: 'Ecosistema unificado: App + Cloud + Orquestación de Agentes.' },
+  { feature: 'Alcance de la Solución', traditional: 'Software estático que requiere intervención humana.',               moleai: 'Software dinámico que razona, ejecuta y valida procesos.' },
 ]
 
-const Check = () => (
-  <svg className="w-4 h-4 text-teal-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
-  </svg>
-)
-const Cross = () => (
-  <svg className="w-4 h-4 text-zinc-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
-  </svg>
-)
+function Check() {
+  return (
+    <svg className="w-4 h-4 text-teal-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
+    </svg>
+  )
+}
+
+function Cross() {
+  return (
+    <svg className="w-4 h-4 text-zinc-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+  )
+}
 
 export default function ComparisonSection() {
-  const ref    = useRef(null)
+  const ref    = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
 
   return (

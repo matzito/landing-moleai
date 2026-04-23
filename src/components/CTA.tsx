@@ -1,7 +1,27 @@
+'use client'
+
 import { useRef, useState } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 
-const PROOF_POINTS = [
+type ProofPoint = {
+  icon: React.ReactNode
+  title: string
+  desc: string
+}
+
+type FormState = {
+  name: string
+  company: string
+  email: string
+  service: string
+  message: string
+}
+
+interface ContactFormProps {
+  onBack: () => void
+}
+
+const PROOF_POINTS: ProofPoint[] = [
   {
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -31,7 +51,7 @@ const PROOF_POINTS = [
   },
 ]
 
-const SERVICES = [
+const SERVICES: string[] = [
   'Orquestación de Agentes IA',
   'Integración de Sistemas (ERP/CRM)',
   'Automatización de Procesos',
@@ -39,14 +59,16 @@ const SERVICES = [
   'Otro',
 ]
 
-function ContactForm({ onBack }) {
-  const [submitted, setSubmitted] = useState(false)
-  const [form, setForm] = useState({ name: '', company: '', email: '', service: '', message: '' })
-  const [loading, setLoading] = useState(false)
+function ContactForm({ onBack }: ContactFormProps) {
+  const [submitted, setSubmitted] = useState<boolean>(false)
+  const [form, setForm] = useState<FormState>({ name: '', company: '', email: '', service: '', message: '' })
+  const [loading, setLoading] = useState<boolean>(false)
 
-  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
+  const set = (k: keyof FormState) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+      setForm(f => ({ ...f, [k]: e.target.value }))
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setTimeout(() => { setLoading(false); setSubmitted(true) }, 1200)
@@ -149,7 +171,9 @@ function ContactForm({ onBack }) {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide">¿Cuál es el reto? <span className="normal-case font-normal text-zinc-400">(opcional)</span></label>
+          <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide">
+            ¿Cuál es el reto? <span className="normal-case font-normal text-zinc-400">(opcional)</span>
+          </label>
           <textarea
             value={form.message}
             onChange={set('message')}
@@ -191,9 +215,9 @@ function ContactForm({ onBack }) {
 }
 
 export default function CTA() {
-  const ref      = useRef(null)
-  const inView   = useInView(ref, { once: true, margin: '-60px' })
-  const [showForm, setShowForm] = useState(false)
+  const ref    = useRef<HTMLElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
+  const [showForm, setShowForm] = useState<boolean>(false)
 
   return (
     <section id="contact" className="py-28 px-6" ref={ref}>

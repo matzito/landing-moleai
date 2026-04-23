@@ -1,6 +1,11 @@
 import LogoMark from './LogoMark'
 
-const LINKS = [
+type NavLink = {
+  label: string
+  href: string
+}
+
+const LINKS: NavLink[] = [
   { label: 'Proceso',      href: '#process'      },
   { label: 'Arquitectura', href: '#architecture' },
   { label: 'Diferencial',  href: '#diferencial'  },

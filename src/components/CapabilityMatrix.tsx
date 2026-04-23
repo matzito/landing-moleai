@@ -1,46 +1,75 @@
+'use client'
+
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 
-const IconOrchestration = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-    <circle cx="10" cy="4"  r="2" stroke="currentColor" strokeWidth="1.4"/>
-    <circle cx="4"  cy="14" r="2" stroke="currentColor" strokeWidth="1.4"/>
-    <circle cx="16" cy="14" r="2" stroke="currentColor" strokeWidth="1.4"/>
-    <line x1="10" y1="6"  x2="4"  y2="12" stroke="currentColor" strokeWidth="1.2"/>
-    <line x1="10" y1="6"  x2="16" y2="12" stroke="currentColor" strokeWidth="1.2"/>
-    <line x1="4"  y1="14" x2="16" y2="14" stroke="currentColor" strokeWidth="1.2" strokeDasharray="2 2"/>
-  </svg>
-)
-const IconLLM = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-    <rect x="2" y="4"  width="16" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
-    <rect x="2" y="11" width="16" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
-    <circle cx="16" cy="6.5"  r="1.2" fill="currentColor"/>
-    <circle cx="16" cy="13.5" r="1.2" fill="currentColor"/>
-    <line x1="5" y1="13.5" x2="12" y2="13.5" stroke="currentColor" strokeWidth="1.2"/>
-  </svg>
-)
-const IconRAG = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-    <circle cx="10" cy="10" r="7"   stroke="currentColor" strokeWidth="1.4" strokeDasharray="3 2"/>
-    <circle cx="10" cy="10" r="3.5" stroke="currentColor" strokeWidth="1.4"/>
-    <circle cx="10" cy="10" r="1.2" fill="currentColor"/>
-  </svg>
-)
-const IconIntegration = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-    <rect x="1.5" y="1.5" width="6" height="6" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
-    <rect x="12.5" y="1.5"  width="6" height="6" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
-    <rect x="1.5"  y="12.5" width="6" height="6" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
-    <rect x="12.5" y="12.5" width="6" height="6" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
-    <line x1="7.5" y1="4.5"  x2="12.5" y2="4.5"  stroke="currentColor" strokeWidth="1.2"/>
-    <line x1="4.5" y1="7.5"  x2="4.5"  y2="12.5" stroke="currentColor" strokeWidth="1.2"/>
-    <line x1="15.5" y1="7.5" x2="15.5" y2="12.5" stroke="currentColor" strokeWidth="1.2"/>
-    <line x1="7.5" y1="15.5" x2="12.5" y2="15.5" stroke="currentColor" strokeWidth="1.2"/>
-  </svg>
-)
+function IconOrchestration() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="10" cy="4"  r="2" stroke="currentColor" strokeWidth="1.4"/>
+      <circle cx="4"  cy="14" r="2" stroke="currentColor" strokeWidth="1.4"/>
+      <circle cx="16" cy="14" r="2" stroke="currentColor" strokeWidth="1.4"/>
+      <line x1="10" y1="6"  x2="4"  y2="12" stroke="currentColor" strokeWidth="1.2"/>
+      <line x1="10" y1="6"  x2="16" y2="12" stroke="currentColor" strokeWidth="1.2"/>
+      <line x1="4"  y1="14" x2="16" y2="14" stroke="currentColor" strokeWidth="1.2" strokeDasharray="2 2"/>
+    </svg>
+  )
+}
 
-const CAPABILITIES = [
+function IconLLM() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <rect x="2" y="4"  width="16" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+      <rect x="2" y="11" width="16" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+      <circle cx="16" cy="6.5"  r="1.2" fill="currentColor"/>
+      <circle cx="16" cy="13.5" r="1.2" fill="currentColor"/>
+      <line x1="5" y1="13.5" x2="12" y2="13.5" stroke="currentColor" strokeWidth="1.2"/>
+    </svg>
+  )
+}
+
+function IconRAG() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="10" cy="10" r="7"   stroke="currentColor" strokeWidth="1.4" strokeDasharray="3 2"/>
+      <circle cx="10" cy="10" r="3.5" stroke="currentColor" strokeWidth="1.4"/>
+      <circle cx="10" cy="10" r="1.2" fill="currentColor"/>
+    </svg>
+  )
+}
+
+function IconIntegration() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <rect x="1.5"  y="1.5"  width="6" height="6" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
+      <rect x="12.5" y="1.5"  width="6" height="6" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
+      <rect x="1.5"  y="12.5" width="6" height="6" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
+      <rect x="12.5" y="12.5" width="6" height="6" rx="1.2" stroke="currentColor" strokeWidth="1.4"/>
+      <line x1="7.5"  y1="4.5"  x2="12.5" y2="4.5"  stroke="currentColor" strokeWidth="1.2"/>
+      <line x1="4.5"  y1="7.5"  x2="4.5"  y2="12.5" stroke="currentColor" strokeWidth="1.2"/>
+      <line x1="15.5" y1="7.5"  x2="15.5" y2="12.5" stroke="currentColor" strokeWidth="1.2"/>
+      <line x1="7.5"  y1="15.5" x2="12.5" y2="15.5" stroke="currentColor" strokeWidth="1.2"/>
+    </svg>
+  )
+}
+
+type CapabilityItem = {
+  id: string
+  step: string
+  icon: React.ReactNode
+  title: string
+  desc: string
+  tags: string[]
+  span: string
+  extra: React.ReactNode | null
+}
+
+interface BentoCardProps {
+  cap: CapabilityItem
+  index: number
+}
+
+const CAPABILITIES: CapabilityItem[] = [
   {
     id: 'orchestration', step: '01', icon: <IconOrchestration/>,
     title: 'Multi-Agent Orchestration',
@@ -96,8 +125,8 @@ const CAPABILITIES = [
   },
 ]
 
-function BentoCard({ cap, index }) {
-  const ref    = useRef(null)
+function BentoCard({ cap, index }: BentoCardProps) {
+  const ref    = useRef<HTMLElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
 
   return (
@@ -134,7 +163,7 @@ function BentoCard({ cap, index }) {
 }
 
 export default function CapabilityMatrix() {
-  const ref    = useRef(null)
+  const ref    = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true })
 
   return (

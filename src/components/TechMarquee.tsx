@@ -1,7 +1,18 @@
+'use client'
+
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 
-const TECHNOLOGIES = [
+type Technology = {
+  name: string
+  color: string
+}
+
+interface TechItemProps {
+  tech: Technology
+}
+
+const TECHNOLOGIES: Technology[] = [
   { name: 'Azure',      color: '#0089D6' },
   { name: '.NET',       color: '#512BD4' },
   { name: 'Python',     color: '#3776AB' },
@@ -21,19 +32,27 @@ const TECHNOLOGIES = [
   { name: 'PHP',        color: '#F46800' },
 ]
 
-function TechItem({ tech }) {
+function TechItem({ tech }: TechItemProps) {
   return (
     <div className="group flex-shrink-0 flex items-center gap-2.5 px-5 py-2.5 mx-2 rounded-lg border border-zinc-200 bg-white cursor-default transition-all duration-200 hover:border-zinc-300 hover:shadow-sm">
       <span
         className="w-2 h-2 rounded-full flex-shrink-0 transition-all duration-300"
         style={{ backgroundColor: tech.color, filter: 'grayscale(1) opacity(0.4)' }}
-        onMouseEnter={e => { e.currentTarget.style.filter = 'grayscale(0) opacity(1)' }}
-        onMouseLeave={e => { e.currentTarget.style.filter = 'grayscale(1) opacity(0.4)' }}
+        onMouseEnter={(e: React.MouseEvent<HTMLSpanElement>) => {
+          e.currentTarget.style.filter = 'grayscale(0) opacity(1)'
+        }}
+        onMouseLeave={(e: React.MouseEvent<HTMLSpanElement>) => {
+          e.currentTarget.style.filter = 'grayscale(1) opacity(0.4)'
+        }}
       />
       <span
         className="text-[12px] font-medium font-mono whitespace-nowrap transition-colors duration-200 text-zinc-400"
-        onMouseEnter={e => { e.currentTarget.style.color = tech.color }}
-        onMouseLeave={e => { e.currentTarget.style.color = '' }}
+        onMouseEnter={(e: React.MouseEvent<HTMLSpanElement>) => {
+          e.currentTarget.style.color = tech.color
+        }}
+        onMouseLeave={(e: React.MouseEvent<HTMLSpanElement>) => {
+          e.currentTarget.style.color = ''
+        }}
       >
         {tech.name}
       </span>
@@ -42,7 +61,7 @@ function TechItem({ tech }) {
 }
 
 export default function TechMarquee() {
-  const ref    = useRef(null)
+  const ref    = useRef<HTMLElement>(null)
   const inView = useInView(ref, { once: true })
   const doubled = [...TECHNOLOGIES, ...TECHNOLOGIES]
 
@@ -63,18 +82,19 @@ export default function TechMarquee() {
               Estándares de ingeniería y stack tecnológico de alto nivel.
             </h2>
           </div>
-          <p className="text-[13px] text-zinc-500 max-w-xs sm:text-right leading-relaxed">
-           
-          </p>
+          <p className="text-[13px] text-zinc-500 max-w-xs sm:text-right leading-relaxed" />
         </motion.div>
       </div>
 
       <div className="relative">
-        {/* Side fades */}
-        <div className="absolute left-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
-          style={{ background: 'linear-gradient(90deg, #F0F2F3, transparent)' }}/>
-        <div className="absolute right-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
-          style={{ background: 'linear-gradient(-90deg, #F0F2F3, transparent)' }}/>
+        <div
+          className="absolute left-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
+          style={{ background: 'linear-gradient(90deg, #F0F2F3, transparent)' }}
+        />
+        <div
+          className="absolute right-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
+          style={{ background: 'linear-gradient(-90deg, #F0F2F3, transparent)' }}
+        />
 
         <div className="flex overflow-hidden mb-2.5">
           <div className="flex animate-marquee">
