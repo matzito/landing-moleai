@@ -35,7 +35,7 @@ export default function Navbar() {
         {/* Logo */}
         <a href="#" className="flex items-center gap-2.5 group">
           <LogoMark size={28} className="group-hover:opacity-90 transition-opacity" />
-          <span className="text-sm font-semibold tracking-tight text-zinc-800">
+          <span className="text-lg font-semibold tracking-tight text-zinc-800">
             mole<span className="text-teal-brand">ai</span>
           </span>
         </a>

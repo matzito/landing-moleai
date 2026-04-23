@@ -126,7 +126,7 @@ const fadeUp = (delay = 0) => ({
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col justify-center pt-24 pb-20 px-2 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col justify-center pt-24 pb-20 px-6 overflow-hidden">
 
       {/* Subtle grid */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
@@ -159,14 +159,17 @@ export default function Hero() {
             </motion.div>
 
             {/* Headline */}
-            <motion.h1
-              {...fadeUp(0.08)}
-              className="text-[2.6rem] sm:text-5xl lg:text-[3.2rem] font-black leading-[1.06] tracking-[-0.02em] text-zinc-900"
-            >
-              Ingeniería de Software e Integración de{' '}
-              <span className="text-gradient-teal">Inteligencia Artificial</span>{' '}
-              para la Próxima Generación de Empresas
-            </motion.h1>
+           <motion.h1
+            {...fadeUp(0.08)}
+            className="text-[2rem] xs:text-[2.1rem] sm:text-5xl lg:text-[3.2rem] font-black leading-[1.1] tracking-[-0.02em] text-zinc-900 sm:text-balance">
+            <span className="block sm:inline">Ingeniería de Software</span>{' '}
+            <span className="block sm:inline">e Integración de</span>{' '}
+            <span className="text-gradient-teal inline decoration-clone break-all sm:inline-block">
+              Inteligencia Artificial
+            </span>{' '}
+            <span className="block sm:inline">para la Próxima</span>{' '}
+            <span className="block sm:inline">Generación de Empresas</span>
+          </motion.h1>
 
             {/* Sub */}
             <motion.p {...fadeUp(0.15)} className="text-[15px] text-zinc-500 leading-relaxed max-w-lg">
