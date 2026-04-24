@@ -1,6 +1,7 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 // ─── Layout ──────────────────────────────────────────────────────────────────
 const NODE_W = 110
@@ -22,64 +23,124 @@ interface Activity {
 
 // ─── Status config ────────────────────────────────────────────────────────────
 const STATUS: Record<ActivityStatus, { label: string; color: string; icon: string }> = {
-  done:     { label: 'Completado', color: '#4ade80', icon: '✓' },
+  done:    { label: 'Completado', color: '#4ade80', icon: '✓' },
   running: { label: 'Ejecutando', color: '#2dd4bf', icon: '▶' },
-  queued:   { label: 'En cola',     color: '#475569', icon: '⏳' },
-  live:     { label: 'Activo',      color: '#38bdf8', icon: '●' },
+  queued:  { label: 'En cola',    color: '#475569', icon: '⏳' },
+  live:    { label: 'Activo',     color: '#38bdf8', icon: '●' },
 }
 
-// ─── Nodes ───────────────────────────────────────────────────────────────────
+// ─── Nodes with cycling frames ────────────────────────────────────────────────
 const NODES: Array<{
   id: string; label: string; initials: string
   cx: number; cy: number; type: NodeType
-  activities: Activity[]
+  frames: Activity[][]
 }> = [
   {
     id: 'n1', label: 'Data Source', initials: 'DS',
     cx: 58, cy: 85, type: 'source',
-    activities: [
-      { text: 'Stream iniciado',   status: 'live',    time: 'ahora' },
-      { text: '1.247 registros',   status: 'live',    time: '1m'    },
+    frames: [
+      [
+        { text: 'Stream iniciado',  status: 'live',    time: 'ahora' },
+        { text: '1.247 registros',  status: 'live',    time: '1m'    },
+      ],
+      [
+        { text: 'Leyendo batch #4', status: 'running', time: '30s'   },
+        { text: '3.891 registros',  status: 'live',    time: '2m'    },
+      ],
+      [
+        { text: 'Validando schema', status: 'running', time: '10s'   },
+        { text: 'Batch completado', status: 'done',    time: '3m'    },
+      ],
     ],
   },
   {
     id: 'n2', label: 'Planner', initials: 'PL',
     cx: 188, cy: 85, type: 'agent',
-    activities: [
-      { text: 'Plan generado',     status: 'done',    time: '2m'    },
-      { text: 'Sub-tareas divid.', status: 'done',    time: '1m'    },
+    frames: [
+      [
+        { text: 'Plan generado',    status: 'done',    time: '2m'    },
+        { text: 'Sub-tareas divid.',status: 'done',    time: '1m'    },
+      ],
+      [
+        { text: 'Analizando deps.', status: 'running', time: 'ahora' },
+        { text: 'Re-planificando',  status: 'running', time: '20s'   },
+      ],
+      [
+        { text: 'Prioridades asig.',status: 'done',    time: '45s'   },
+        { text: 'Recursos mapeados',status: 'done',    time: '30s'   },
+      ],
     ],
   },
   {
     id: 'n3', label: 'Executor', initials: 'EX',
     cx: 318, cy: 85, type: 'agent',
-    activities: [
-      { text: 'Esperando ctx',     status: 'queued',  time: '8m'    },
-      { text: 'Siguiente en cola', status: 'queued',  time: '6m'    },
+    frames: [
+      [
+        { text: 'Esperando ctx',    status: 'queued',  time: '8m'    },
+        { text: 'Siguiente en cola',status: 'queued',  time: '6m'    },
+      ],
+      [
+        { text: 'Ejecutando tarea', status: 'running', time: 'ahora' },
+        { text: 'Tool call #3',     status: 'running', time: '5s'    },
+      ],
+      [
+        { text: 'Tarea completada', status: 'done',    time: '1m'    },
+        { text: 'Siguiente en cola',status: 'queued',  time: '2m'    },
+      ],
     ],
   },
   {
     id: 'n4', label: 'Response', initials: 'RE',
     cx: 448, cy: 85, type: 'output',
-    activities: [
-      { text: 'Conectando fuentes',status: 'running', time: '5m'    },
-      { text: 'Fusionando ctx',    status: 'running', time: '3m'    },
+    frames: [
+      [
+        { text: 'Conectando fuentes',status: 'running', time: '5m'   },
+        { text: 'Fusionando ctx',    status: 'running', time: '3m'   },
+      ],
+      [
+        { text: 'Generando resp.',   status: 'running', time: 'ahora'},
+        { text: 'Tokens: 1.2k',      status: 'live',    time: '10s'  },
+      ],
+      [
+        { text: 'Respuesta lista',   status: 'done',    time: '30s'  },
+        { text: 'Enviando output',   status: 'running', time: '5s'   },
+      ],
     ],
   },
   {
     id: 'n5', label: 'Validator', initials: 'VA',
     cx: 318, cy: 232, type: 'agent',
-    activities: [
-      { text: 'Esperando result.', status: 'queued',  time: '11m'   },
-      { text: 'Validación pend.',  status: 'queued',  time: '9m'    },
+    frames: [
+      [
+        { text: 'Esperando result.', status: 'queued',  time: '11m'  },
+        { text: 'Validación pend.',  status: 'queued',  time: '9m'   },
+      ],
+      [
+        { text: 'Validando salida',  status: 'running', time: 'ahora'},
+        { text: 'Chequeando facts',  status: 'running', time: '15s'  },
+      ],
+      [
+        { text: 'Sin errores found', status: 'done',    time: '1m'   },
+        { text: 'Aprobado',          status: 'done',    time: '45s'  },
+      ],
     ],
   },
   {
     id: 'n6', label: 'Output', initials: 'OP',
     cx: 448, cy: 232, type: 'output',
-    activities: [
-      { text: 'Esperando valid.',  status: 'queued',  time: '14m'   },
-      { text: 'Etapa final',       status: 'queued',  time: '12m'   },
+    frames: [
+      [
+        { text: 'Esperando valid.',  status: 'queued',  time: '14m'  },
+        { text: 'Etapa final',       status: 'queued',  time: '12m'  },
+      ],
+      [
+        { text: 'Procesando result.',status: 'running', time: 'ahora'},
+        { text: 'Formateando',       status: 'running', time: '8s'   },
+      ],
+      [
+        { text: 'Output generado',   status: 'done',    time: '30s'  },
+        { text: 'Entregado al user', status: 'done',    time: '20s'  },
+      ],
     ],
   },
 ]
@@ -93,6 +154,19 @@ const NODE_COLORS: Record<NodeType, { border: string; bg: string; accent: string
 const NODE_DELAY: Record<string, number> = {
   n1: 0.0, n2: 0.1, n3: 0.2, n4: 0.3, n5: 0.4, n6: 0.5,
 }
+
+// Ball path total ≈ 813px. Offsets = (cumulative dist / 813) * 6000ms.
+// n1=0, n2=130, n3=260, n4=390, n5=683, n6=813(→5900ms to fire before reset)
+const BALL_VISIT_MS: Record<string, number> = {
+  n1:    0,
+  n2:  960,
+  n3: 1920,
+  n4: 2880,
+  n5: 5040,
+  n6: 5900,
+}
+const CYCLE_MS = 6000
+const INIT_DELAY_MS = 1000 // matches begin="1s" on animateMotion
 
 // ─── Edges ───────────────────────────────────────────────────────────────────
 function hEdge(a: typeof NODES[0], b: typeof NODES[0]) {
@@ -121,6 +195,35 @@ const FULL_PATH = [
 ].join(' ')
 
 export default function NodeFlowAnimation() {
+  const [nodeFrames, setNodeFrames] = useState<Record<string, number>>(
+    () => Object.fromEntries(NODES.map(n => [n.id, 0]))
+  )
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    const timeouts: ReturnType<typeof setTimeout>[] = []
+
+    function scheduleCycle() {
+      Object.entries(BALL_VISIT_MS).forEach(([id, offset]) => {
+        const h = setTimeout(() => {
+          setNodeFrames(prev => ({ ...prev, [id]: prev[id] + 1 }))
+        }, offset)
+        timeouts.push(h)
+      })
+    }
+
+    const initId = setTimeout(() => {
+      scheduleCycle()
+      intervalRef.current = setInterval(scheduleCycle, CYCLE_MS)
+    }, INIT_DELAY_MS)
+
+    return () => {
+      clearTimeout(initId)
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      timeouts.forEach(clearTimeout)
+    }
+  }, [])
+
   return (
     <div
       className="relative w-full select-none overflow-hidden"
@@ -169,6 +272,9 @@ export default function NodeFlowAnimation() {
         {NODES.map((node) => {
           const c = NODE_COLORS[node.type]
           const delay = NODE_DELAY[node.id]
+          const frameIdx = nodeFrames[node.id] % node.frames.length
+          const activities = node.frames[frameIdx]
+
           return (
             <motion.div
               key={node.id}
@@ -184,11 +290,12 @@ export default function NodeFlowAnimation() {
                 borderTop: `0px`,
                 borderLeft: `0px`,
                 borderRight: `2px solid ${c.border}55`,
-                boxShadow: `0px 1px 0px 0px rgba(0, 0, 0, 0.3), 4px 1px 0px 0px rgba(0, 0, 0, 0.2), 0px 0px 1px 0 rgba(255,255,255,0.04)`,
+                boxShadow: `0px 1px 0px 0px rgba(0,0,0,0.3), 4px 1px 0px 0px rgba(0,0,0,0.2), 0px 0px 1px 0 rgba(255,255,255,0.04)`,
                 display: 'flex',
                 flexDirection: 'column',
                 padding: '7px 8px 6px 8px',
                 gap: 0,
+                overflow: 'hidden',
               }}
               initial={{ opacity: 0, scale: 0.85, y: 4 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -215,20 +322,33 @@ export default function NodeFlowAnimation() {
 
               <div style={{ height: 1, background: `${c.border}30`, marginBottom: 5 }} />
 
-              {node.activities.map((act, ai) => {
-                const st = STATUS[act.status]
-                return (
-                  <div key={ai} style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: ai === 0 ? 4 : 0 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: st.color, flexShrink: 0 }} />
-                    <span style={{ flex: 1, fontFamily: 'ui-monospace, monospace', fontSize: 7.5, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {act.text}
-                    </span>
-                    <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 7, color: st.color }}>
-                      {st.icon} {act.time}
-                    </span>
-                  </div>
-                )
-              })}
+              <div style={{ position: 'relative', height: 28, overflow: 'hidden', flexShrink: 0 }}>
+                <AnimatePresence initial={false}>
+                  <motion.div
+                    key={frameIdx}
+                    initial={{ y: '100%' }}
+                    animate={{ y: 0 }}
+                    exit={{ y: '-100%' }}
+                    transition={{ duration: 0.35, ease: [0.32, 0, 0.67, 0] }}
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column', gap: 4 }}
+                  >
+                    {activities.map((act, ai) => {
+                      const st = STATUS[act.status]
+                      return (
+                        <div key={ai} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ width: 4, height: 4, borderRadius: '50%', background: st.color, flexShrink: 0 }} />
+                          <span style={{ flex: 1, fontFamily: 'ui-monospace, monospace', fontSize: 7.5, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {act.text}
+                          </span>
+                          <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 7, color: st.color }}>
+                            {st.icon} {act.time}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
             </motion.div>
           )
         })}
