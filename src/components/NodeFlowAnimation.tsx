@@ -159,7 +159,7 @@ export default function NodeFlowAnimation() {
             />
           ))}
 
-          <circle r="4.5" fill="#0d9488" filter="url(#dot-glow)">
+          <circle r="4.5" fill="#f97316" filter="url(#dot-glow)">
             <animateMotion dur="6s" repeatCount="indefinite" calcMode="linear" begin="1s">
               <mpath href="#travel-path" />
             </animateMotion>
@@ -181,8 +181,10 @@ export default function NodeFlowAnimation() {
                 background: c.bg,
                 borderRadius: 9,
                 border: `1px solid ${c.border}45`,
+                borderTop: `0px`,
+                borderLeft: `0px`,
                 borderRight: `2px solid ${c.border}55`,
-                boxShadow: `0 2px 6px rgba(0,0,0,0.3), 2px 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)`,
+                boxShadow: `0px 1px 0px 0px rgba(0, 0, 0, 0.3), 4px 1px 0px 0px rgba(0, 0, 0, 0.2), 0px 0px 1px 0 rgba(255,255,255,0.04)`,
                 display: 'flex',
                 flexDirection: 'column',
                 padding: '7px 8px 6px 8px',
@@ -191,7 +193,7 @@ export default function NodeFlowAnimation() {
               initial={{ opacity: 0, scale: 0.85, y: 4 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ delay, duration: 0.35, ease: 'backOut' }}
-              whileHover={{ scale: 1.03, boxShadow: `0 6px 22px rgba(0,0,0,0.65), 0 0 0 1px ${c.border}` }}
+              whileHover={{ scale: 1.03, boxShadow: `4px 2px 0px rgba(0,0,0,0.2), 0 0 0 0px ${c.border}` }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
                 <div style={{
