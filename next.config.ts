@@ -1,8 +1,8 @@
-import type { NextConfig } from 'next'
-
-const nextConfig: NextConfig = {
-  experimental: {
-    // other flags
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'export', 
+  images: {
+    unoptimized: true, 
   },
 }
 

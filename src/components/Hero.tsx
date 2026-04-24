@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import NodeFlowAnimation from './NodeFlowAnimation'
 
 type AgentStatus = 'complete' | 'running' | 'queued'
 
@@ -230,19 +231,61 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* Right: Workflow table */}
+          {/* Right: Node flow panel */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col gap-3"
+            className="hidden flex-1 lg:block"
           >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] font-mono text-zinc-400 tracking-widest uppercase">Runtime Preview</span>
-              <span className="text-[11px] font-mono text-zinc-300">moleai.engineering v2.4</span>
+            <div
+              className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#2a2a31]"
+              style={{
+                transform: 'perspective(900px) rotateY(-20deg) rotateX(4deg)',
+                transformOrigin: 'center center',
+                boxShadow: `
+                  1px 0px 0px #1a1a1a,
+                  2px 0px 0px #1a1a1a,
+                  3px 1px 0px #1a1a1a,
+                  4px 1px 0px #1a1a1a,
+                  5px 1px 0px #1a1a1a,
+                  6px 2px 0px #1a1a1a,
+                  20px 30px 60px rgba(0,0,0,0.6)
+                `,
+              }}
+            >
+              {/* Panel header */}
+              <div className="flex items-center justify-between border-b border-white/5 px-5 py-3">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                  </div>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                    Runtime Preview
+                  </span>
+                </div>
+                <span className="font-mono text-[10px] text-gray-500">
+                  moleai.engineering v2.4
+                </span>
+              </div>
+
+              {/* Animation */}
+              <NodeFlowAnimation />
+
+              {/* Footer */}
+              <div className="flex items-center justify-between border-t border-white/5 px-5 py-2.5">
+                <span className="font-mono text-[10px] text-gray-400">
+                  mode: <span className="text-[#0D9488]">deterministic</span>
+                  {'  '}memory: 137 MB
+                </span>
+                <span className="flex items-center gap-1.5 font-mono text-[10px] text-[#0D9488]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#0D9488]" />
+                  live
+                </span>
+              </div>
             </div>
-            <AgentWorkflow/>
-            <p className="text-[11px] text-zinc-400 font-mono text-right">Telemetría activa · Actualización cada 0.2s</p>
           </motion.div>
 
         </div>
