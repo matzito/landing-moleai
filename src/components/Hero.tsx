@@ -193,23 +193,9 @@ export default function Hero() {
 
             {/* Sub */}
             <motion.p {...fadeUp(0.15)} className="text-[15px] text-zinc-500 leading-relaxed max-w-lg">
-              Diseñamos y desplegamos soluciones punta a punta: desde aplicaciones móviles robustas e integraciones críticas de sistemas, hasta arquitecturas de agentes autónomos que transforman procesos en{' '}
-              <span className="text-zinc-800 font-medium">flujos de ejecución deterministas</span>.
+              Llevamos tu empresa al futuro digital. Diseñamos software a la medida e integramos agentes inteligentes que transforman tareas manuales en procesos automáticos, seguros y diseñados para {' '}
+              <span className="text-zinc-800 font-medium">escalar sin límites</span>.
             </motion.p>
-
-            {/* Metrics */}
-            <motion.div {...fadeUp(0.22)} className="flex gap-8 pt-1">
-              {[
-                { value: '10×',   label: 'Aumento en capacidad operativa' },
-                { value: '99.9%', label: 'Disponibilidad de plataforma'   },
-                { value: '80%',   label: 'Reducción en Time-to-Market'    },
-              ].map(m => (
-                <div key={m.label} className="flex flex-col gap-0.5">
-                  <span className="text-xl font-black text-zinc-900 font-mono tabular-nums">{m.value}</span>
-                  <span className="text-[11px] text-zinc-400 tracking-wide">{m.label}</span>
-                </div>
-              ))}
-            </motion.div>
 
             {/* CTAs */}
             <motion.div {...fadeUp(0.28)} className="flex flex-wrap gap-3">
@@ -231,59 +217,74 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* Right: Node flow panel */}
+          {/* Right: Node flow panel + metrics */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="hidden flex-1 lg:block"
           >
-            <div
-              className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#2a2a31]"
-              style={{
-                transform: 'perspective(900px) rotateY(-20deg) rotateX(4deg)',
-                transformOrigin: 'center center',
-                boxShadow: `
-                  1px 0px 0px #1a1a1a,
-                  2px 0px 0px #1a1a1a,
-                  3px 1px 0px #1a1a1a,
-                  4px 1px 0px #1a1a1a,
-                  5px 1px 0px #1a1a1a,
-                  6px 2px 0px #1a1a1a,
-                  20px 30px 60px rgba(0,0,0,0.6)
-                `,
-              }}
-            >
-              {/* Panel header */}
-              <div className="flex items-center justify-between border-b border-white/5 px-5 py-3">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+            {/* Shared perspective wrapper — panel and metrics tilt together */}
+            <div style={{
+              transform: 'perspective(900px) rotateY(-20deg) rotateX(4deg)',
+              transformOrigin: 'center center',
+            }}>
+              {/* Panel */}
+              <div
+                className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#2a2a31]"
+                style={{
+                  boxShadow: '2px 1px 0px #1a1a1a, 4px 6px 16px rgba(0,0,0,0.4)'
+                }}
+              >
+                {/* Panel header */}
+                <div className="flex items-center justify-between border-b border-white/5 px-5 py-3">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                    </div>
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                      Runtime Preview
+                    </span>
                   </div>
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
-                    Runtime Preview
+                  <span className="font-mono text-[10px] text-gray-500">
+                    moleai.engineering v2.4
                   </span>
                 </div>
-                <span className="font-mono text-[10px] text-gray-500">
-                  moleai.engineering v2.4
-                </span>
+
+                {/* Animation */}
+                <NodeFlowAnimation />
+
+                {/* Footer */}
+                <div className="flex items-center justify-between border-t border-white/5 px-5 py-2.5">
+                  <span className="font-mono text-[10px] text-gray-400">
+                    mode: <span className="text-[#0D9488]">deterministic</span>
+                    {'  '}memory: 137 MB
+                  </span>
+                  <span className="flex items-center gap-1.5 font-mono text-[10px] text-[#0D9488]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#0D9488]" />
+                    live
+                  </span>
+                </div>
               </div>
 
-              {/* Animation */}
-              <NodeFlowAnimation />
-
-              {/* Footer */}
-              <div className="flex items-center justify-between border-t border-white/5 px-5 py-2.5">
-                <span className="font-mono text-[10px] text-gray-400">
-                  mode: <span className="text-[#0D9488]">deterministic</span>
-                  {'  '}memory: 137 MB
-                </span>
-                <span className="flex items-center gap-1.5 font-mono text-[10px] text-[#0D9488]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#0D9488]" />
-                  live
-                </span>
+              {/* Metrics — same perspective plane as the panel */}
+              <div className="grid grid-cols-3 gap-3 mt-3">
+                {[
+                  { value: '10×',   label: 'Aumento en capacidad operativa' },
+                  { value: '99.9%', label: 'Disponibilidad de plataforma'   },
+                  { value: '80%',   label: 'Reducción en Time-to-Market'    },
+                ].map(m => (
+                  <div
+                    key={m.label}
+                    className="rounded-xl border border-white/5 px-4 py-3"
+                    style={{ }}
+                  >
+                    <span className="block font-mono text-[24px] font-black tabular-nums text-black">{m.value}</span>
+                    <span className="mt-0.5 block text-[14px] leading-snug text-gray-400">{m.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>

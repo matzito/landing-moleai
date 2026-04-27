@@ -6,10 +6,34 @@ import { motion, AnimatePresence } from 'framer-motion'
 // ─── Layout ──────────────────────────────────────────────────────────────────
 const NODE_W = 110
 const NODE_H = 82
-const HW = NODE_W / 2   // 55
-const HH = NODE_H / 2   // 41
+const HW = NODE_W / 2
+const HH = NODE_H / 2
 const SVG_W = 485
 const SVG_H = 310
+
+// ─── Colors ──────────────────────────────────────────────────────────────────
+const COLOR_PRIMARY       = '#0369a1'               // blue — primary accent: edges, active state, strips
+const COLOR_STRIP         = '#7e8d96'              // blue — primary accent: edges, active state, strips
+const COLOR_DONE          = '#0fd759'               // green — completed activity dot & icon
+const COLOR_ORANGE        = '#eb7125'               // orange — queued activity dot & icon; source node badge
+const COLOR_AGENT_ACCENT  = '#6366f1'               // indigo — agent node initials badge
+const COLOR_OUTPUT_ACCENT = '#94a3b8'               // slate  — output node initials badge
+const COLOR_SOURCE_BG     = 'rgb(52, 32, 32)'       // dark red — source node card background
+const COLOR_NODE_BG       = '#ffffff'               // white — agent/output node card background
+const COLOR_CANVAS_BG     = 'rgb(44, 44, 48)'       // dark blue-gray — outer container background
+const COLOR_GRID_LINE     = 'rgba(255,255,255,0.05)'// faint white — grid overlay lines
+const COLOR_BALL          = '#f97316'               // orange — travelling dot along edges
+const COLOR_CARD_BG       = 'rgb(59, 59, 62)'               // near-black — node card surface
+const COLOR_CARD_EDGE     = '#2f312f'               // dark gray — card side edge in box-shadow
+const COLOR_SHADOW_CORE   = 'rgba(0,0,0,0.35)'      // shadow: compact core darkness
+const COLOR_SHADOW_FLOOR  = 'rgba(36,36,38,0.45)'   // shadow: floor projection weight
+const COLOR_TEXT_LABEL    = '#b9b9bf'               // muted gray — node title text
+const COLOR_TEXT_ACTIVITY = '#d1d1d1'               // light gray — activity row text
+
+// ─── Shadows ─────────────────────────────────────────────────────────────────
+// Two clean strings (no comments) so framer-motion can interpolate between them
+const SHADOW_BASE   = `-1px 1px 0px ${COLOR_CARD_EDGE}, -2px 2px 0px ${COLOR_CARD_EDGE}, -3px 3px 0px ${COLOR_CARD_EDGE}, -7px 10px 10px ${COLOR_SHADOW_CORE}, -5px 5px 2px ${COLOR_SHADOW_FLOOR}`
+const SHADOW_LIFTED = `-2px 2px 0px ${COLOR_CARD_EDGE}, -4px 4px 0px ${COLOR_CARD_EDGE}, -6px 6px 0px ${COLOR_CARD_EDGE}, -14px 18px 20px ${COLOR_SHADOW_CORE}, -10px 10px 6px ${COLOR_SHADOW_FLOOR}`
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type NodeType = 'source' | 'agent' | 'output'
@@ -21,12 +45,17 @@ interface Activity {
   time: string
 }
 
-// ─── Status config ────────────────────────────────────────────────────────────
-const STATUS: Record<ActivityStatus, { label: string; color: string; icon: string }> = {
-  done:    { label: 'Completado', color: '#4ade80', icon: '✓' },
-  running: { label: 'Ejecutando', color: '#2dd4bf', icon: '▶' },
-  queued:  { label: 'En cola',    color: '#475569', icon: '⏳' },
-  live:    { label: 'Activo',     color: '#38bdf8', icon: '●' },
+const STATUS: Record<ActivityStatus, { color: string; icon: string }> = {
+  done:    { color: COLOR_DONE,    icon: '✓' },
+  running: { color: COLOR_PRIMARY, icon: '▶' },
+  queued:  { color: COLOR_ORANGE,  icon: '·' },
+  live:    { color: COLOR_PRIMARY, icon: '●' },
+}
+
+const NODE_COLORS: Record<NodeType, { bg: string; accent: string; stripOpacity: number }> = {
+  source: { bg: COLOR_SOURCE_BG, accent: COLOR_ORANGE,        stripOpacity: 1   },
+  agent:  { bg: COLOR_NODE_BG,   accent: COLOR_AGENT_ACCENT,  stripOpacity: 0.6 },
+  output: { bg: COLOR_NODE_BG,   accent: COLOR_OUTPUT_ACCENT, stripOpacity: 0.4 },
 }
 
 // ─── Nodes with cycling frames ────────────────────────────────────────────────
@@ -145,18 +174,11 @@ const NODES: Array<{
   },
 ]
 
-const NODE_COLORS: Record<NodeType, { border: string; bg: string; accent: string }> = {
-  source: { border: '#0e7490', bg: '#1a2d3d', accent: '#38bdf8' },
-  agent:  { border: '#0f766e', bg: '#162b28', accent: '#2dd4bf' },
-  output: { border: '#4f46e5', bg: '#1a1a32', accent: '#818cf8' },
-}
-
 const NODE_DELAY: Record<string, number> = {
   n1: 0.0, n2: 0.1, n3: 0.2, n4: 0.3, n5: 0.4, n6: 0.5,
 }
 
 // Ball path total ≈ 813px. Offsets = (cumulative dist / 813) * 6000ms.
-// n1=0, n2=130, n3=260, n4=390, n5=683, n6=813(→5900ms to fire before reset)
 const BALL_VISIT_MS: Record<string, number> = {
   n1:    0,
   n2:  960,
@@ -166,7 +188,7 @@ const BALL_VISIT_MS: Record<string, number> = {
   n6: 5900,
 }
 const CYCLE_MS = 6000
-const INIT_DELAY_MS = 1000 // matches begin="1s" on animateMotion
+const INIT_DELAY_MS = 1000
 
 // ─── Edges ───────────────────────────────────────────────────────────────────
 function hEdge(a: typeof NODES[0], b: typeof NODES[0]) {
@@ -227,28 +249,35 @@ export default function NodeFlowAnimation() {
   return (
     <div
       className="relative w-full select-none overflow-hidden"
-      style={{ height: SVG_H + 10, background: 'rgb(42,41,41)' }}
+      style={{ height: 380, background: COLOR_CANVAS_BG }}
     >
+      {/* Grid */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
+            linear-gradient(${COLOR_GRID_LINE} 1px, transparent 1px),
+            linear-gradient(90deg, ${COLOR_GRID_LINE} 1px, transparent 1px)
           `,
           backgroundSize: '40px 40px',
         }}
       />
 
+      {/* Isometric content */}
       <div style={{
-        position: 'absolute', left: '44%', top: '50%',
-        width: SVG_W, height: SVG_H,
-        transform: 'translate(-50%, -50%)',
+        position: 'absolute',
+        left: '50%',
+        top: '52%',
+        width: SVG_W,
+        height: SVG_H,
+        transform: 'translate(-50%, -50%) scale(1.2) rotateX(55deg) rotateZ(-45deg)',
+        transformOrigin: 'center center',
+        transformStyle: 'preserve-3d',
       }}>
         <svg width={SVG_W} height={SVG_H} style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
           <defs>
             <filter id="dot-glow" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+              <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
               <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
             </filter>
             <path id="travel-path" d={FULL_PATH} fill="none" stroke="none" />
@@ -256,13 +285,13 @@ export default function NodeFlowAnimation() {
 
           {EDGE_LINES.map((d, i) => (
             <motion.path key={i} d={d} fill="none"
-              stroke="#2a3a4a" strokeWidth="1.5" strokeDasharray="4 5" strokeLinecap="round"
+              stroke={`${COLOR_STRIP}88`} strokeWidth="1.5" strokeDasharray="4 6" strokeLinecap="round"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 + i * 0.1, duration: 0.3 }}
+              transition={{ delay: 0.4 + i * 0.1, duration: 0.4 }}
             />
           ))}
 
-          <circle r="4.5" fill="#f97316" filter="url(#dot-glow)">
+          <circle r="5" fill={COLOR_BALL} filter="url(#dot-glow)">
             <animateMotion dur="6s" repeatCount="indefinite" calcMode="linear" begin="1s">
               <mpath href="#travel-path" />
             </animateMotion>
@@ -275,6 +304,8 @@ export default function NodeFlowAnimation() {
           const frameIdx = nodeFrames[node.id] % node.frames.length
           const activities = node.frames[frameIdx]
 
+          const isAgent = node.type === 'agent'
+
           return (
             <motion.div
               key={node.id}
@@ -284,70 +315,94 @@ export default function NodeFlowAnimation() {
                 top: node.cy - HH,
                 width: NODE_W,
                 height: NODE_H,
-                background: c.bg,
-                borderRadius: 9,
-                border: `1px solid ${c.border}45`,
-                borderTop: `0px`,
-                borderLeft: `0px`,
-                borderRight: `2px solid ${c.border}55`,
-                boxShadow: `0px 1px 0px 0px rgba(0,0,0,0.3), 4px 1px 0px 0px rgba(0,0,0,0.2), 0px 0px 1px 0 rgba(255,255,255,0.04)`,
+                background: COLOR_CARD_BG,
+                borderRadius: 8,
+                overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
-                padding: '7px 8px 6px 8px',
-                gap: 0,
-                overflow: 'hidden',
+                cursor: isAgent ? 'pointer' : 'default',
               }}
-              initial={{ opacity: 0, scale: 0.85, y: 4 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.85, boxShadow: SHADOW_BASE }}
+              animate={{ opacity: 1, scale: 1, boxShadow: SHADOW_BASE }}
+              whileHover={isAgent ? {
+                z: 16,
+                boxShadow: SHADOW_LIFTED,
+                transition: { type: 'spring', stiffness: 380, damping: 22 },
+              } : undefined}
               transition={{ delay, duration: 0.35, ease: 'backOut' }}
-              whileHover={{ scale: 1.03, boxShadow: `4px 2px 0px rgba(0,0,0,0.2), 0 0 0 0px ${c.border}` }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-                <div style={{
-                  width: 20, height: 20, borderRadius: 5, flexShrink: 0,
-                  background: `${c.accent}18`, border: `1px solid ${c.accent}30`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'ui-monospace, monospace', fontSize: 7, fontWeight: 800,
-                  color: c.accent,
-                }}>
-                  {node.initials}
+              {/* Yellow header strip */}
+              <div style={{
+                height: 4,
+                background: `${COLOR_PRIMARY}`,
+                opacity: c.stripOpacity,
+                flexShrink: 0,
+              }} />
+
+              {/* Card body */}
+              <div style={{ padding: '6px 8px 6px 8px', display: 'flex', flexDirection: 'column', flex: 1, gap: 0 }}>
+                {/* Title row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+                  <div style={{
+                    width: 18, height: 18, borderRadius: 4, flexShrink: 0,
+                    background: `${COLOR_PRIMARY}22`,
+                    border: `1px solid ${COLOR_PRIMARY}55`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: 'ui-monospace, monospace', fontSize: 6.5, fontWeight: 900,
+                    color: c.accent,
+                    letterSpacing: '-0.5px',
+                  }}>
+                    {node.initials}
+                  </div>
+                  <span style={{
+                    fontFamily: 'ui-monospace, monospace', fontSize: 9, fontWeight: 700,
+                    color: COLOR_TEXT_LABEL, flex: 1,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    letterSpacing: '0.2px',
+                  }}>
+                    {node.label}
+                  </span>
                 </div>
-                <span style={{
-                  fontFamily: 'ui-monospace, monospace', fontSize: 9.5, fontWeight: 700,
-                  color: '#cbd5e1', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {node.label}
-                </span>
-              </div>
 
-              <div style={{ height: 1, background: `${c.border}30`, marginBottom: 5 }} />
+                {/* Divider */}
+                <div style={{ height: 1, background: `${COLOR_PRIMARY}18`, marginBottom: 5 }} />
 
-              <div style={{ position: 'relative', height: 28, overflow: 'hidden', flexShrink: 0 }}>
-                <AnimatePresence initial={false}>
-                  <motion.div
-                    key={frameIdx}
-                    initial={{ y: '100%' }}
-                    animate={{ y: 0 }}
-                    exit={{ y: '-100%' }}
-                    transition={{ duration: 0.35, ease: [0.32, 0, 0.67, 0] }}
-                    style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column', gap: 4 }}
-                  >
-                    {activities.map((act, ai) => {
-                      const st = STATUS[act.status]
-                      return (
-                        <div key={ai} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <span style={{ width: 4, height: 4, borderRadius: '50%', background: st.color, flexShrink: 0 }} />
-                          <span style={{ flex: 1, fontFamily: 'ui-monospace, monospace', fontSize: 7.5, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {act.text}
-                          </span>
-                          <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 7, color: st.color }}>
-                            {st.icon} {act.time}
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </motion.div>
-                </AnimatePresence>
+                {/* Activities — fixed height, fade transition */}
+                <div style={{ position: 'relative', height: 28, overflow: 'hidden', flexShrink: 0 }}>
+                  <AnimatePresence initial={false}>
+                    <motion.div
+                      key={frameIdx}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4 }}
+                      style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column', gap: 4 }}
+                    >
+                      {activities.map((act, ai) => {
+                        const st = STATUS[act.status]
+                        return (
+                          <div key={ai} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <span style={{
+                              width: 4, height: 4, borderRadius: '50%',
+                              background: st.color, flexShrink: 0,
+                              boxShadow: st.color === COLOR_PRIMARY ? `0 0 4px ${COLOR_PRIMARY}` : 'none',
+                            }} />
+                            <span style={{
+                              flex: 1, fontFamily: 'ui-monospace, monospace', fontSize: 6,
+                              color: COLOR_TEXT_ACTIVITY,
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}>
+                              {act.text}
+                            </span>
+                            <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 6, color: st.color }}>
+                              {st.icon} {act.time}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
               </div>
             </motion.div>
           )
