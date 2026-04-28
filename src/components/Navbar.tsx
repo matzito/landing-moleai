@@ -26,6 +26,15 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  const handleMobileNav = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault()
+    setMenuOpen(false)
+    // Wait for the 250ms close animation before scrolling
+    setTimeout(() => {
+      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' })
+    }, 280)
+  }
+
   return (
     <motion.header
       initial={{ y: -100, opacity: 0 }}
@@ -97,7 +106,7 @@ export default function Navbar() {
                 <a
                   key={label}
                   href={href}
-                  onClick={() => setMenuOpen(false)}
+                  onClick={(e) => handleMobileNav(e, href)}
                   className="text-sm text-zinc-600 hover:text-zinc-900 transition-colors"
                 >
                   {label}
@@ -105,7 +114,7 @@ export default function Navbar() {
               ))}
               <a
                 href="#contact"
-                onClick={() => setMenuOpen(false)}
+                onClick={(e) => handleMobileNav(e, '#contact')}
                 className="inline-flex justify-center items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-full bg-[#EC5800] text-white hover:bg-[#d44f00] transition-colors duration-150 mt-1"
               >
                 Agendar Consultoría

@@ -145,7 +145,7 @@ const fadeUp = (delay = 0) => ({
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col justify-center pt-24 pb-20 px-6 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col justify-center pt-20 sm:pt-28 pb-20 px-6 overflow-hidden">
 
       {/* Subtle grid */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
@@ -164,10 +164,10 @@ export default function Hero() {
       />
 
       <div className="relative z-10 max-w-7xl mx-auto w-full">
-        <div className="grid lg:grid-cols-[1fr_1.1fr] gap-14 lg:gap-8 items-center">
+        <div className="grid lg:grid-cols-[1fr_1.1fr] gap-7 lg:gap-8 items-start">
 
           {/* Left */}
-          <div className="flex flex-col gap-7">
+          <div className="flex flex-col gap-3 sm:gap-7">
 
             {/* Pill badge */}
             <motion.div {...fadeUp(0)}>
@@ -180,37 +180,36 @@ export default function Hero() {
             {/* Headline */}
             <motion.h1
               {...fadeUp(0.08)}
-              className="text-[2rem] xs:text-[2.1rem] sm:text-5xl lg:text-[3.2rem] font-black leading-[1.1] tracking-[-0.02em] text-zinc-900 sm:text-balance"
+              className="text-[3rem] xs:text-[2.1rem] sm:text-5xl lg:text-[3.2rem] font-black leading-[1.1] tracking-[-0.02em] text-zinc-900 sm:text-balance"
             >
               <span className="block sm:inline">Ingeniería de Software</span>{' '}
-              <span className="block sm:inline">e Integración de</span>{' '}
-              <span className="text-gradient-teal inline decoration-clone break-all sm:inline-block">
+              <span className="text-gradient-teal block sm:inline">+</span>{' '}
+              <span className="text-gradient-teal inline decoration-clone sm:inline">
                 Inteligencia Artificial
               </span>{' '}
-              <span className="block sm:inline">para la Próxima</span>{' '}
-              <span className="block sm:inline">Generación de Empresas</span>
+              <span className="block sm:inline text-[1.4rem] sm:text-[2rem] lg:text-[1.9rem] font-bold text-zinc-700 mt-2 sm:mt-0">Para la próxima Generación de Empresas</span>{' '}
             </motion.h1>
 
             {/* Sub */}
-            <motion.p {...fadeUp(0.15)} className="text-[15px] text-zinc-500 leading-relaxed max-w-lg">
+            <motion.p {...fadeUp(0.15)} className="text-[16px] text-zinc-500 leading-relaxed max-w-lg">
               Llevamos tu empresa al futuro digital. Diseñamos software a la medida e integramos agentes inteligentes que transforman tareas manuales en procesos automáticos, seguros y diseñados para {' '}
               <span className="text-zinc-800 font-medium">escalar sin límites</span>.
             </motion.p>
 
             {/* CTAs */}
             <motion.div {...fadeUp(0.28)} className="flex flex-wrap gap-3">
-              <a href="#contact" className="btn-persimmon inline-flex items-center gap-2 px-6 py-3 text-sm font-bold rounded-xl">
+              <a href="#contact" className="btn-persimmon inline-flex items-center gap-2.5 px-8 py-4 text-base font-bold rounded-xl">
                 Agendar Consultoría Técnica
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3"/>
                 </svg>
               </a>
               <a
                 href="#comparison"
-                className="inline-flex items-center gap-1.5 px-5 py-3 text-sm text-zinc-500 hover:text-zinc-900 border border-zinc-200 hover:border-zinc-300 rounded-xl bg-white transition-all duration-150 shadow-sm"
+                className="inline-flex items-center gap-2 px-7 py-4 text-base text-zinc-500 hover:text-zinc-900 border border-zinc-200 hover:border-zinc-300 rounded-xl bg-white transition-all duration-150 shadow-sm"
               >
                 Ver comparativa
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
                 </svg>
               </a>
@@ -222,18 +221,15 @@ export default function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="hidden flex-1 lg:block"
+            className="flex-1 w-full"
           >
-            {/* Shared perspective wrapper — panel and metrics tilt together */}
-            <div style={{
-              transform: 'perspective(900px) rotateY(-20deg) rotateX(4deg)',
-              transformOrigin: 'center center',
-            }}>
+            {/* Perspective only on desktop — mobile shows flat */}
+            <div className="lg:[transform:perspective(900px)_rotateY(-20deg)_rotateX(4deg)] lg:[transform-origin:center_center]">
               {/* Panel */}
               <div
                 className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#2a2a31]"
                 style={{
-                  boxShadow: '2px 1px 0px #1a1a1a, 4px 6px 16px rgba(0,0,0,0.4)'
+                  boxShadow: '2px 1px 0px #1a1a1a, 4px 6px 16px rgba(0,0,0,0.4)',
                 }}
               >
                 {/* Panel header */}
