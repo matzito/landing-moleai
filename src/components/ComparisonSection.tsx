@@ -23,7 +23,7 @@ const ROWS: ComparisonRow[] = [
 
 function Check() {
   return (
-    <svg className="w-4 h-4 text-teal-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
     </svg>
   )
@@ -31,7 +31,7 @@ function Check() {
 
 function Cross() {
   return (
-    <svg className="w-4 h-4 text-zinc-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="w-4 h-4 text-zinc-300 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
     </svg>
   )
@@ -42,7 +42,7 @@ export default function ComparisonSection() {
   const inView = useInView(ref, { once: true, margin: '-60px' })
 
   return (
-    <section id="comparison" className="py-28 px-6 border-b border-zinc-200">
+    <section id="comparison" className="py-20 px-4 sm:px-6 border-b border-zinc-200">
       <div className="max-w-7xl mx-auto">
 
         <motion.div
@@ -50,14 +50,14 @@ export default function ComparisonSection() {
           initial={{ opacity: 0, y: 18 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="mb-12 flex flex-col sm:flex-row sm:items-end gap-6 justify-between"
+          className="mb-10 flex flex-col sm:flex-row sm:items-end gap-6 justify-between"
         >
           <div className="flex flex-col gap-2.5 max-w-xl">
             <span className="text-[11px] font-mono font-semibold tracking-widest uppercase text-zinc-400">
               Comparative Analysis
             </span>
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 leading-tight">
-              Ingeniería de agentes{' '}
+              Mole Engineering{' '}
               <span className="text-gradient-teal">vs. consultoría tradicional</span>
             </h2>
           </div>
@@ -72,8 +72,8 @@ export default function ComparisonSection() {
           transition={{ duration: 0.55, delay: 0.1 }}
           className="rounded-xl border border-zinc-200 overflow-hidden bg-white shadow-sm"
         >
-          {/* Header */}
-          <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-zinc-200 bg-zinc-50">
+          {/* Desktop header — hidden on mobile */}
+          <div className="hidden lg:grid grid-cols-[1fr_1fr_1fr] border-b border-zinc-200 bg-zinc-50">
             <div className="px-6 py-4">
               <span className="text-[11px] font-mono font-semibold uppercase tracking-widest text-zinc-400">Dimensión</span>
             </div>
@@ -95,18 +95,44 @@ export default function ComparisonSection() {
               initial={{ opacity: 0 }}
               animate={inView ? { opacity: 1 } : {}}
               transition={{ duration: 0.4, delay: 0.15 + i * 0.05 }}
-              className="grid grid-cols-[1fr_1fr_1fr] border-b border-zinc-100 last:border-0 hover:bg-zinc-50 transition-colors duration-150"
+              className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/60 transition-colors duration-150"
             >
-              <div className="px-6 py-4">
-                <span className="text-[13px] font-medium text-zinc-600">{row.feature}</span>
+              {/* Mobile: stacked card layout */}
+              <div className="lg:hidden">
+                <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-100">
+                  <span className="text-[11px] font-mono font-semibold uppercase tracking-widest text-zinc-500">
+                    {row.feature}
+                  </span>
+                </div>
+                <div className="px-4 py-3 border-b border-zinc-100 flex items-start gap-2.5">
+                  <Cross/>
+                  <div>
+                    <span className="block text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-1">Tradicional</span>
+                    <span className="text-[13px] text-zinc-400 leading-relaxed">{row.traditional}</span>
+                  </div>
+                </div>
+                <div className="px-4 py-3 flex items-start gap-2.5">
+                  <Check/>
+                  <div>
+                    <span className="block text-[10px] font-mono text-teal-600 uppercase tracking-widest mb-1">Mole Engineering</span>
+                    <span className="text-[13px] text-zinc-700 leading-relaxed font-medium">{row.moleai}</span>
+                  </div>
+                </div>
               </div>
-              <div className="px-6 py-4 border-l border-zinc-100 flex items-start gap-2.5">
-                <Cross/>
-                <span className="text-[13px] text-zinc-400 leading-relaxed">{row.traditional}</span>
-              </div>
-              <div className="px-6 py-4 border-l border-zinc-100 flex items-start gap-2.5">
-                <Check/>
-                <span className="text-[13px] text-zinc-700 leading-relaxed font-medium">{row.moleai}</span>
+
+              {/* Desktop: 3-column grid */}
+              <div className="hidden lg:grid grid-cols-[1fr_1fr_1fr]">
+                <div className="px-6 py-4">
+                  <span className="text-[13px] font-medium text-zinc-600">{row.feature}</span>
+                </div>
+                <div className="px-6 py-4 border-l border-zinc-100 flex items-start gap-2.5">
+                  <Cross/>
+                  <span className="text-[13px] text-zinc-400 leading-relaxed">{row.traditional}</span>
+                </div>
+                <div className="px-6 py-4 border-l border-zinc-100 flex items-start gap-2.5">
+                  <Check/>
+                  <span className="text-[13px] text-zinc-700 leading-relaxed font-medium">{row.moleai}</span>
+                </div>
               </div>
             </motion.div>
           ))}

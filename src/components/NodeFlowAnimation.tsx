@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // ─── Layout ──────────────────────────────────────────────────────────────────
@@ -220,30 +220,37 @@ export default function NodeFlowAnimation() {
   const [nodeFrames, setNodeFrames] = useState<Record<string, number>>(
     () => Object.fromEntries(NODES.map(n => [n.id, 0]))
   )
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    const timeouts: ReturnType<typeof setTimeout>[] = []
+    // Origin aligned with the SVG animateMotion begin="1s"
+    const originMs = performance.now() + INIT_DELAY_MS
+    // Tracks which (nodeId, cycleIndex) pairs have already fired
+    const triggered = new Set<string>()
+    let rafId: number
 
-    function scheduleCycle() {
-      Object.entries(BALL_VISIT_MS).forEach(([id, offset]) => {
-        const h = setTimeout(() => {
-          setNodeFrames(prev => ({ ...prev, [id]: prev[id] + 1 }))
-        }, offset)
-        timeouts.push(h)
-      })
+    const tick = () => {
+      const elapsed = performance.now() - originMs
+      if (elapsed >= 0) {
+        const cycle = Math.floor(elapsed / CYCLE_MS)
+        const posInCycle = elapsed % CYCLE_MS
+
+        for (const [id, visitMs] of Object.entries(BALL_VISIT_MS)) {
+          const key = `${id}:${cycle}`
+          if (posInCycle >= visitMs && !triggered.has(key)) {
+            triggered.add(key)
+            setNodeFrames(prev => ({ ...prev, [id]: prev[id] + 1 }))
+          }
+        }
+        // Prune keys from cycles older than the previous one
+        for (const key of triggered) {
+          if (parseInt(key.split(':')[1]) < cycle - 1) triggered.delete(key)
+        }
+      }
+      rafId = requestAnimationFrame(tick)
     }
 
-    const initId = setTimeout(() => {
-      scheduleCycle()
-      intervalRef.current = setInterval(scheduleCycle, CYCLE_MS)
-    }, INIT_DELAY_MS)
-
-    return () => {
-      clearTimeout(initId)
-      if (intervalRef.current) clearInterval(intervalRef.current)
-      timeouts.forEach(clearTimeout)
-    }
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
   }, [])
 
   return (
@@ -367,15 +374,15 @@ export default function NodeFlowAnimation() {
                 {/* Divider */}
                 <div style={{ height: 1, background: `${COLOR_PRIMARY}18`, marginBottom: 5 }} />
 
-                {/* Activities — fixed height, fade transition */}
+                {/* Activities — fixed height, scroll-up transition */}
                 <div style={{ position: 'relative', height: 28, overflow: 'hidden', flexShrink: 0 }}>
-                  <AnimatePresence initial={false}>
+                  <AnimatePresence initial={false} mode="popLayout">
                     <motion.div
                       key={frameIdx}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4 }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                       style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column', gap: 4 }}
                     >
                       {activities.map((act, ai) => {

@@ -169,8 +169,8 @@ function ArchDiagram() {
   const toggle = (key: string) => setSel(p => p === key ? null : key)
 
   const busL  = 250
-  const hubX  = 295
-  const hubW  = 370
+  const hubX  = 335
+  const hubW  = 300
   const hubX2 = hubX + hubW
   const busR  = 710
   const busTop = nodeCY(0)
@@ -358,9 +358,9 @@ function ArchDiagram() {
       {/* Central Hub */}
       {(() => {
         const hx = hubX
-        const hy = 28
+        const hy = 70
         const hw = hubW
-        const hh = 396
+        const hh = 266
         const headerH = 72
         const bodyY = hy + headerH
 
@@ -444,14 +444,14 @@ function ArchDiagram() {
                     />
                     <text x={ix} y={iy + 4.5} textAnchor="middle"
                       fontFamily="'JetBrains Mono', 'Fira Code', monospace"
-                      fontSize="11" fontWeight="700" fill={ic}
+                      fontSize="9" fontWeight="700" fill={ic}
                       style={{ transition: 'fill 0.2s' }}
                     >
                       {icon}
                     </text>
                     <text x={hx + 56} y={iy + 5}
                       fontFamily="Inter, system-ui, sans-serif"
-                      fontSize="11" fontWeight={textWeight} fill={textFill}
+                      fontSize="9" fontWeight={textWeight} fill={textFill}
                       style={{ transition: 'fill 0.2s' }}
                     >
                       {text}
