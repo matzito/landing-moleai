@@ -67,7 +67,7 @@ export default function ProcessFlow() {
             Delivery Process
           </span>
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900 leading-[1.1]">
-            Diseñamos, construimos y orquestamos su{' '}
+            Diseñamos, construimos y orquestamos su {' '}
             <span className="text-gradient-teal">ecosistema inteligente.</span>
           </h2>
         </motion.div>

@@ -2,6 +2,8 @@
 
 import { useRef, useState } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
+import { db } from '@/lib/firebase'
+import { collection, addDoc } from 'firebase/firestore'
 
 type ProofPoint = {
   icon: React.ReactNode
@@ -68,10 +70,32 @@ function ContactForm({ onBack }: ContactFormProps) {
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
       setForm(f => ({ ...f, [k]: e.target.value }))
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => { setLoading(false); setSubmitted(true) }, 1200)
+    try {
+      await addDoc(collection(db, 'mail'), {
+        to: 'mario@moleai.io',
+        message: {
+          subject: `🚀 Nuevo Lead: ${form.name} (${form.company})`,
+          html: `
+            <h2>Nuevo contacto desde la web</h2>
+            <p><strong>Nombre:</strong> ${form.name}</p>
+            <p><strong>Empresa:</strong> ${form.company}</p>
+            <p><strong>Email:</strong> ${form.email}</p>
+            <p><strong>Servicio de interés:</strong> ${form.service || '—'}</p>
+            <p><strong>Mensaje:</strong> ${form.message || '—'}</p>
+          `,
+        },
+        createdAt: new Date(),
+      })
+      setSubmitted(true)
+    } catch (error) {
+      console.error('Error enviando a Firebase:', error)
+      alert('Hubo un error técnico. Por favor, intenta de nuevo.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (submitted) {
