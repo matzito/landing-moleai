@@ -129,7 +129,7 @@ export default function DonutChart({ score, etiqueta }: DonutChartProps) {
         style={{ backgroundColor: scoreColor }}>
         {etiqueta}
       </span>
-      <span className="text-xs text-gray-600 font-mono text-center">
+      <span className="text-[14px] text-gray-600 font-medium text-center leading-snug">
         {score >= 80
           ? '¡Excelente! Tu landing está optimizada.'
           : score >= 60

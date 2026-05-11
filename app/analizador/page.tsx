@@ -256,6 +256,12 @@ export default function AnalizadorPage() {
         data.secciones.velocidadPagina.estado     = scoreLabel(avg) as typeof data.secciones.velocidadPagina.estado
         data.secciones.velocidadPagina.detalles   = { desktop: psd.desktopScore, mobile: psd.mobileScore }
         data.pageSpeedData = psd
+
+        // Recalculate general score now that velocidadPagina has real data
+        const scores = Object.values(data.secciones).map(s => s.puntuacion)
+        const recalc = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+        data.puntuacionGeneral = recalc
+        data.etiqueta = scoreLabel(recalc)
       } else {
         addLog('⚠ PageSpeed no disponible — usando estimación IA')
       }
@@ -336,6 +342,15 @@ export default function AnalizadorPage() {
     } catch { setError('No se pudo cargar el análisis.'); setPhase('error') }
   }
 
+  function handleDeleteHistorial(e: React.MouseEvent, id: string) {
+    e.stopPropagation()
+    const updated = readHistorial().filter(h => h.id !== id)
+    writeHistorial(updated)
+    setHistorial(updated)
+    if (activeId === id) { setActiveId(null); setResult(null); setPhase('idle') }
+    if (user) saveUserHistorialToFirestore(user.uid, updated).catch(() => {})
+  }
+
   async function handleRate(rating: number, feedback: string) {
     try {
       await addDoc(collection(db, 'feedback'), {
@@ -404,10 +419,11 @@ export default function AnalizadorPage() {
             const date = new Date(item.createdAt).toLocaleDateString('es-MX', { month: 'short', day: 'numeric' })
             const itemScoreColor = scoreToColor(item.score)
             return (
-              <button key={item.id} onClick={() => handleHistorialClick(item)}
-                className={`w-full flex items-center gap-3 px-3 py-3 mx-1 rounded-xl text-left transition-colors ${
+              <div key={item.id}
+                className={`group relative w-full flex items-center gap-3 px-3 py-3 mx-1 rounded-xl text-left transition-colors cursor-pointer ${
                   isActive ? 'bg-teal-50 border border-teal-200' : 'hover:bg-zinc-50'
-                }`}>
+                }`}
+                onClick={() => handleHistorialClick(item)}>
                 <div className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-[13px] font-black text-white"
                   style={{ backgroundColor: itemScoreColor }}>
                   {item.score}
@@ -419,11 +435,19 @@ export default function AnalizadorPage() {
                   <div className="text-[11px] text-zinc-400">{date} · {item.label}</div>
                 </div>
                 {!item.result && (
-                  <svg className="w-3 h-3 text-zinc-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3 h-3 text-zinc-300 flex-shrink-0 group-hover:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
                   </svg>
                 )}
-              </button>
+                <button
+                  onClick={(e) => handleDeleteHistorial(e, item.id)}
+                  className="opacity-0 group-hover:opacity-100 flex-shrink-0 p-1 rounded-md text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                  title="Eliminar">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
             )
           })
         )}

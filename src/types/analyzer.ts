@@ -6,6 +6,7 @@ export interface SeccionAnalisis {
   puntuacion: number
   estado: EstadoSeccion
   puntos: string[]
+  observacion?: string
   detalles?: Record<string, number | string>
 }
 

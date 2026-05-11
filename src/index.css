@@ -152,3 +152,34 @@
 }
 
 .row-running { animation: row-pulse 1.8s ease-in-out infinite; }
+
+.pdf-header {
+  display: none;
+}
+
+@media print {
+  .pdf-header {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    border-bottom: 1px solid #e4e4e7;
+    margin-bottom: 4px;
+  }
+
+  .screenshot-preview-wrapper {
+    padding-bottom: 0 !important;
+    height: 300px !important;
+    overflow: visible !important;
+  }
+  .screenshot-preview-wrapper img {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: 300px !important;
+    opacity: 1 !important;
+    display: block !important;
+    object-fit: cover;
+    object-position: top;
+  }
+}
