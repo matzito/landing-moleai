@@ -5,7 +5,7 @@ import { scoreToColor } from '@/lib/scoreColor'
 
 interface DonutChartProps {
   score: number
-  etiqueta: string
+  label: string
 }
 
 // Arc-position color (t: 0–1 along the arc) — kept local since it's only for canvas drawing
@@ -34,7 +34,7 @@ function lerpColor(t: number): string {
 
 const toRad = (deg: number) => (deg * Math.PI) / 180
 
-export default function DonutChart({ score, etiqueta }: DonutChartProps) {
+export default function DonutChart({ score, label }: DonutChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [animated, setAnimated] = useState(0)
 
@@ -127,9 +127,9 @@ export default function DonutChart({ score, etiqueta }: DonutChartProps) {
 
       <span className="text-white text-sm font-bold px-5 py-1.5 rounded"
         style={{ backgroundColor: scoreColor }}>
-        {etiqueta}
+        {label}
       </span>
-      <span className="text-xs text-gray-600 font-mono text-center">
+      <span className="text-[14px] text-gray-600 font-medium text-center leading-snug">
         {score >= 80
           ? '¡Excelente! Tu landing está optimizada.'
           : score >= 60

@@ -1,4 +1,4 @@
-import { AnalisisResult } from '@/types/analyzer'
+import { AnalysisResult } from '@/types/analyzer'
 
 // In production (Hostinger): no env vars set -> requests go through /api/ai.php (PHP proxy with server-side keys)
 // In local dev: set NEXT_PUBLIC_AI_API_URL + NEXT_PUBLIC_AI_API_KEY in .env.local to hit OpenRouter directly
@@ -16,23 +16,31 @@ CONTENIDO DE LA PAGINA (markdown extraido):
 ${content.slice(0, 12000)}
 ---
 
+DETECCION DE CONTEXTO (aplica antes de analizar — usa esto para calibrar observation):
+- Tipo de negocio: producto digital (SaaS/app), servicio profesional (consultoria, agencia, despacho), negocio con presencia fisica, ecommerce, u otro.
+- Modelo de conversion: ¿busca contacto/cita, compra en linea, suscripcion, descarga, o solicitud de propuesta?
+- Mercado: B2B, B2C, o mixto.
+- Precios: ¿tiene precio fijo visible, requiere cotizacion, o no aplica precio directo?
+Usa este contexto en observation para no asumir credito, suscripcion, trial o SaaS si no corresponde.
+
 INSTRUCCIONES CRITICAS:
 1. Responde UNICAMENTE con JSON valido puro. Sin markdown, sin backticks, sin texto adicional.
-2. En "resumenEjecutivo", empieza con el error mas grave. No digas "La pagina esta bien".
+2. En "executiveSummary", empieza con el error mas grave. No digas "La pagina esta bien".
 3. Todo el texto del analisis debe estar en ESPANOL.
 4. Se especifico y accionable. Menciona elementos reales del contenido, no genericos.
-5. Los "puntos" en cada seccion deben ser maximo 3 frases cortas (max 15 palabras cada una).
-6. En secciones con score bajo los puntos son PROBLEMAS o MEJORAS necesarias.
-7. En secciones con score alto los puntos son FORTALEZAS observadas.
-8. ideasMejora: exactamente 5 ideas ordenadas por prioridad (ALTA primero).
-9. seoTecnico: exactamente 4 problemas tecnicos reales inferidos del contenido.
-10. En velocidadPagina agrega "detalles": {"desktop": X, "mobile": Y} con scores de velocidad inferidos por separado (0-100).
-11. En cada idea de ideasMejora agrega "inspiracion": ["Empresa A", "Empresa B", "Empresa C"] con 2-3 empresas SaaS/tech reales cuyas landing pages son referencia para ese tipo de mejora.
+5. Los "points" en cada seccion deben ser maximo 3 frases cortas (max 15 palabras cada una).
+6. En secciones con score bajo los points son PROBLEMAS o MEJORAS necesarias.
+7. En secciones con score alto los points son FORTALEZAS observadas.
+8. improvementIdeas: exactamente 5 ideas ordenadas por prioridad (ALTA primero).
+9. technicalSEO: exactamente 4 problemas tecnicos reales inferidos del contenido.
+10. En pageSpeed agrega "details": {"desktop": X, "mobile": Y} con scores de velocidad inferidos por separado (0-100).
+11. En cada idea de improvementIdeas agrega "inspiration": ["Empresa A", "Empresa B", "Empresa C"] con 2-3 empresas cuyas landing pages son referencia para ese tipo de mejora.
 12. Nunca devuelvas un score de 0. El minimo posible es 10.
-13. Si una seccion carece de los elementos requeridos, su puntuacion base es 15 y su estado es "NECESITA TRABAJO".
-14. Las UNICAS etiquetas de estado validas para secciones son exactamente estas cuatro: "EXCELENTE" (80-100), "BUENA" (60-79), "REGULAR" (40-59), "NECESITA TRABAJO" (10-39). Ninguna otra.
-15. puntuacionGeneral = redondeo del promedio aritmetico de las 8 puntuaciones de secciones.
-16. En seccionesDetectadas los unicos valores de estado validos son: "presente", "mejorar", "necesita mejora". Nunca uses "ausente".
+13. Si una seccion carece de los elementos requeridos, su score base es 15 y su status es "NECESITA TRABAJO".
+14. Las UNICAS etiquetas de status validas para secciones son exactamente estas cuatro: "EXCELENTE" (80-100), "BUENA" (60-79), "REGULAR" (40-59), "NECESITA TRABAJO" (10-39). Ninguna otra.
+15. overallScore = redondeo del promedio aritmetico de las 8 puntuaciones de secciones.
+16. En detectedSections los unicos valores de status validos son: "presente", "mejorar", "necesita mejora". Nunca uses "ausente".
+17. En cada seccion agrega "observation": 2 oraciones directas y especificas sobre LO QUE SE DETECTO en ESTA pagina para esa dimension. Menciona elementos reales (titulos, textos, secciones). Adapta el lenguaje al tipo de negocio detectado. No uses frases genericas ni asumas modelo de negocio que no corresponda.
 
 ### SISTEMA DE PUNTUACION (PUNTOS ACUMULATIVOS):
 Evalua cada criterio como PRESENTE o AUSENTE basandote en el CONCEPTO, no en frases exactas. Variantes similares cuentan igual. Sin evidencia clara = 0 para ese criterio.
@@ -96,7 +104,7 @@ Evalua cada criterio como PRESENTE o AUSENTE basandote en el CONCEPTO, no en fra
    - [+40] Pocos assets pesados: No se detectan iframes multiples, embeds de video sin carga diferida, o scripts de terceros en cantidad.
    - [+35] Imagenes razonables: No hay indicios de imagenes de alta resolucion sin optimizacion o multiples imagenes de gran tamano en la parte superior.
    - [+25] Estructura tecnica simple: La pagina no presenta senales de frameworks muy pesados, exceso de trackers o fuentes externas multiples.
-   Devuelve "detalles": {"desktop": X, "mobile": Y} donde el score mobile suele ser entre 15 y 25 puntos menor que desktop.
+   Devuelve "details": {"desktop": X, "mobile": Y} donde el score mobile suele ser entre 15 y 25 puntos menor que desktop.
 
 
 Devuelve EXACTAMENTE esta estructura JSON:
@@ -107,86 +115,94 @@ Devuelve EXACTAMENTE esta estructura JSON:
   "objetivo": "objetivo principal de conversion inferido",
   "persona": "audiencia objetivo inferida",
   "industria": "industria o sector",
-  "puntuacionGeneral": 65,
-  "etiqueta": "Buena",
-  "resumenEjecutivo": "2-3 oraciones criticas y directas sobre el estado actual de conversion de la pagina",
-  "fortalezas": [
+  "overallScore": 65,
+  "label": "Buena",
+  "executiveSummary": "2-3 oraciones criticas y directas sobre el estado actual de conversion de la pagina",
+  "strengths": [
     "fortaleza especifica observada 1",
     "fortaleza especifica observada 2",
     "fortaleza especifica observada 3"
   ],
-  "aMejorar": [
+  "toImprove": [
     "mejora concreta y accionable 1",
     "mejora concreta y accionable 2",
     "mejora concreta y accionable 3"
   ],
-  "secciones": {
+  "sections": {
     "topOfPage": {
-      "puntuacion": 82,
-      "estado": "EXCELENTE",
-      "puntos": ["observacion concreta 1", "observacion concreta 2", "observacion concreta 3"]
+      "score": 82,
+      "status": "EXCELENTE",
+      "points": ["observation concreta 1", "observation concreta 2", "observation concreta 3"],
+      "observation": "Oracion especifica sobre lo que se detecto en la primera pantalla de esta pagina. Segunda oracion con lo que falta o lo que funciona bien, adaptada al tipo de negocio."
     },
-    "propuestaDeValor": {
-      "puntuacion": 72,
-      "estado": "BUENA",
-      "puntos": ["observacion 1", "observacion 2", "observacion 3"]
+    "valueProposition": {
+      "score": 72,
+      "status": "BUENA",
+      "points": ["observation 1", "observation 2", "observation 3"],
+      "observation": "Observation especifica sobre como esta pagina comunica sus beneficios. Segunda oracion con la brecha concreta detectada."
     },
     "copywriting": {
-      "puntuacion": 58,
-      "estado": "REGULAR",
-      "puntos": ["problema 1", "problema 2", "problema 3"]
+      "score": 58,
+      "status": "REGULAR",
+      "points": ["problema 1", "problema 2", "problema 3"],
+      "observation": "Observation especifica sobre el tono y enfoque del copy de esta pagina. Segunda oracion con el cambio concreto recomendado."
     },
-    "confianza": {
-      "puntuacion": 30,
-      "estado": "NECESITA TRABAJO",
-      "puntos": ["problema 1", "problema 2", "problema 3"]
+    "trust": {
+      "score": 30,
+      "status": "NECESITA TRABAJO",
+      "points": ["problema 1", "problema 2", "problema 3"],
+      "observation": "Observation especifica sobre la prueba social detectada en esta pagina. Segunda oracion con lo que falta y por que importa para este tipo de negocio."
     },
-    "disenoUX": {
-      "puntuacion": 75,
-      "estado": "BUENA",
-      "puntos": ["observacion 1", "observacion 2", "observacion 3"]
+    "designUX": {
+      "score": 75,
+      "status": "BUENA",
+      "points": ["observation 1", "observation 2", "observation 3"],
+      "observation": "Observation especifica sobre la estructura visual y navegacion de esta pagina. Segunda oracion sobre el flujo del visitante."
     },
     "conversion": {
-      "puntuacion": 65,
-      "estado": "BUENA",
-      "puntos": ["observacion 1", "observacion 2", "observacion 3"]
+      "score": 65,
+      "status": "BUENA",
+      "points": ["observation 1", "observation 2", "observation 3"],
+      "observation": "Observation especifica sobre los llamados a la accion de esta pagina. Segunda oracion sobre lo que facilita o dificulta que el visitante de el siguiente paso."
     },
-    "experienciaMovil": {
-      "puntuacion": 68,
-      "estado": "BUENA",
-      "puntos": ["observacion 1", "observacion 2", "observacion 3"]
+    "mobileExperience": {
+      "score": 68,
+      "status": "BUENA",
+      "points": ["observation 1", "observation 2", "observation 3"],
+      "observation": "Observation especifica sobre como se comporta esta pagina en dispositivos moviles basada en su estructura. Segunda oracion con el impacto concreto detectado."
     },
-    "velocidadPagina": {
-      "puntuacion": 70,
-      "estado": "BUENA",
-      "puntos": ["observacion 1", "observacion 2", "observacion 3"],
-      "detalles": {"desktop": 78, "mobile": 52}
+    "pageSpeed": {
+      "score": 70,
+      "status": "BUENA",
+      "points": ["observation 1", "observation 2", "observation 3"],
+      "details": {"desktop": 78, "mobile": 52},
+      "observation": "Observation especifica sobre los elementos de peso o complejidad detectados en esta pagina. Segunda oracion sobre el impacto en la experiencia del visitante."
     }
   },
-  "seccionesDetectadas": [
-    {"numero": 1, "nombre": "Hero", "estado": "presente"},
-    {"numero": 2, "nombre": "CTA Principal", "estado": "presente"},
-    {"numero": 3, "nombre": "Prueba Social / Trust", "estado": "necesita mejora"},
-    {"numero": 4, "nombre": "Como Funciona", "estado": "presente"},
-    {"numero": 5, "nombre": "Features / Beneficios", "estado": "presente"},
-    {"numero": 6, "nombre": "Problema / Pain Point", "estado": "mejorar"},
-    {"numero": 7, "nombre": "Testimonios", "estado": "necesita mejora"},
-    {"numero": 8, "nombre": "Pricing", "estado": "necesita mejora"}
+  "detectedSections": [
+    {"number": 1, "name": "Hero", "status": "presente"},
+    {"number": 2, "name": "CTA Principal", "status": "presente"},
+    {"number": 3, "name": "Prueba Social / Trust", "status": "necesita mejora"},
+    {"number": 4, "name": "Como Funciona", "status": "presente"},
+    {"number": 5, "name": "Features / Beneficios", "status": "presente"},
+    {"number": 6, "name": "Problema / Pain Point", "status": "mejorar"},
+    {"number": 7, "name": "Testimonios", "status": "necesita mejora"},
+    {"number": 8, "name": "Pricing", "status": "necesita mejora"}
   ],
-  "ideasMejora": [
+  "improvementIdeas": [
     {
-      "titulo": "titulo accionable corto de la mejora",
-      "seccion": "HERO",
-      "prioridad": "ALTA",
-      "detalle": "Explicacion especifica de que cambiar, por que y que impacto tendra",
-      "inspiracion": ["Scout", "Intercom", "Synthesia"]
+      "title": "titulo accionable corto de la mejora",
+      "section": "HERO",
+      "priority": "ALTA",
+      "detail": "Explicacion especifica de que cambiar, por que y que impacto tendra",
+      "inspiration": ["Scout", "Intercom", "Synthesia"]
     }
   ],
-  "seoTecnico": [
+  "technicalSEO": [
     {
-      "problema": "nombre del problema SEO detectado",
-      "prioridad": "MEDIA",
-      "solucion": "como solucionarlo concretamente"
+      "problem": "nombre del problema SEO detectado",
+      "priority": "MEDIA",
+      "solution": "como solucionarlo concretamente"
     }
   ]
 }`
@@ -237,7 +253,7 @@ function repairTruncatedJson(raw: string): string {
   return s + stack.reverse().join('')
 }
 
-export async function analyzeWithAI(url: string, content: string): Promise<AnalisisResult> {
+export async function analyzeWithAI(url: string, content: string): Promise<AnalysisResult> {
   const systemPrompt = 'Actua como un Auditor de Conversion (CRO) cinico y ultra-exigente. Tu estandar es la perfeccion. No regales puntos. Se directo, critico y especifico. No des consejos genericos.'
 
   const res = await fetch(AI_URL, {
@@ -256,10 +272,14 @@ export async function analyzeWithAI(url: string, content: string): Promise<Anali
         { role: 'system', content: systemPrompt },
         { role: 'user', content: buildPrompt(url, content) },
       ],
-      max_tokens: 4096,
+      max_tokens: 16000,
       temperature: 0,
       top_p: 1,
       seed: 42,
+      provider: {
+        order: ['DeepSeek'],
+        allow_fallbacks: false,
+      },
     }),
   })
 
@@ -270,12 +290,24 @@ export async function analyzeWithAI(url: string, content: string): Promise<Anali
     throw new Error(`Error del modelo: ${msg}`)
   }
 
-  // Some models return content inside tool_calls or with finish_reason=length
   const choice = data.choices?.[0]
+  const finishReason: string = choice?.finish_reason ?? ''
+
+  // Pull raw text — some providers nest it differently
   const raw: string = choice?.message?.content ?? choice?.text ?? ''
+
   if (!raw) {
-    const detail = JSON.stringify(data).slice(0, 300)
+    // finish_reason=length means the model ran out of tokens mid-response
+    if (finishReason === 'length') {
+      throw new Error('La respuesta fue cortada por límite de tokens. Intenta de nuevo o usa un modelo con mayor contexto de salida.')
+    }
+    const detail = JSON.stringify(data).slice(0, 400)
     throw new Error(`La IA no devolvió contenido. Respuesta: ${detail}`)
+  }
+
+  // Warn in console but don't crash — truncated JSON may still be repairable
+  if (finishReason === 'length') {
+    console.warn('[analyzeWithAI] finish_reason=length — intentando reparar JSON truncado')
   }
 
   // Normalize: strip markdown code fences models add despite being told not to
@@ -300,7 +332,7 @@ export async function analyzeWithAI(url: string, content: string): Promise<Anali
   }
 
   for (const candidate of candidates) {
-    try { return JSON.parse(candidate) as AnalisisResult } catch { /* try next */ }
+    try { return JSON.parse(candidate) as AnalysisResult } catch { /* try next */ }
   }
 
   throw new Error('No se pudo parsear la respuesta de la IA')

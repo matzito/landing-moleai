@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { User, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth'
 import { addDoc, collection, getDoc, setDoc, doc as fsDoc } from 'firebase/firestore'
-import { AnalisisResult, HistorialItem } from '@/types/analyzer'
+import { AnalysisResult, HistoryItem } from '@/types/analyzer'
 import { fetchPageContent, analyzeWithAI } from '@/lib/analyzeUrl'
 import { getPageSpeed } from '@/lib/pageSpeed'
 import dynamic from 'next/dynamic'
@@ -30,9 +30,9 @@ const PHASE_ORDER: Phase[] = ['fetch', 'extract', 'ai', 'parse', 'done']
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const FREE_KEY      = 'moleai_free_used'
-const HISTORIAL_KEY = 'moleai_historial'
-const MAX_HIST      = 10
+const FREE_KEY    = 'moleai_free_used'
+const HISTORY_KEY = 'moleai_historial'
+const MAX_HIST    = 10
 
 function phaseIndex(p: Phase)  { return PHASE_ORDER.indexOf(p) }
 function todayKey()            { return new Date().toISOString().slice(0, 10) }
@@ -45,15 +45,15 @@ function normalizeUrl(raw: string): string {
 function getHostname(url: string): string {
   try { return new URL(url).hostname } catch { return url }
 }
-function readHistorial(): HistorialItem[] {
-  try { return JSON.parse(localStorage.getItem(HISTORIAL_KEY) || '[]') } catch { return [] }
+function readHistory(): HistoryItem[] {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]') } catch { return [] }
 }
-function writeHistorial(items: HistorialItem[]) {
-  try { localStorage.setItem(HISTORIAL_KEY, JSON.stringify(items)) } catch {}
+function writeHistory(items: HistoryItem[]) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(items)) } catch {}
 }
-function pushHistorial(item: HistorialItem) {
-  const cur = readHistorial()
-  writeHistorial([item, ...cur.filter(h => h.id !== item.id)].slice(0, MAX_HIST))
+function pushHistory(item: HistoryItem) {
+  const cur = readHistory()
+  writeHistory([item, ...cur.filter(h => h.id !== item.id)].slice(0, MAX_HIST))
 }
 function getMonthlyCount(): number {
   try { return parseInt(localStorage.getItem(monthKey()) || '0', 10) } catch { return 0 }
@@ -83,14 +83,14 @@ async function setDomainLimit(uid: string, domain: string) {
     uid, domain, date: todayKey(), createdAt: new Date(),
   })
 }
-async function loadUserHistorialFromFirestore(uid: string): Promise<HistorialItem[]> {
+async function loadUserHistoryFromFirestore(uid: string): Promise<HistoryItem[]> {
   try {
     const snap = await getDoc(fsDoc(db, 'users', uid))
-    if (snap.exists()) return (snap.data().historial as HistorialItem[]) ?? []
+    if (snap.exists()) return (snap.data().historial as HistoryItem[]) ?? []
   } catch {}
   return []
 }
-async function saveUserHistorialToFirestore(uid: string, items: HistorialItem[]) {
+async function saveUserHistoryToFirestore(uid: string, items: HistoryItem[]) {
   try {
     const meta = items.map(({ id, url, hostname, score, label, createdAt }) =>
       ({ id, url, hostname, score, label, createdAt }))
@@ -126,12 +126,12 @@ export default function AnalizadorPage() {
   const [url, setUrl]             = useState('')
   const [phase, setPhase]         = useState<Phase>('idle')
   const [error, setError]         = useState<string | null>(null)
-  const [result, setResult]       = useState<AnalisisResult | null>(null)
+  const [result, setResult]       = useState<AnalysisResult | null>(null)
   const [resultId, setResultId]   = useState<string | null>(null)
   const [logLines, setLogLines]   = useState<string[]>([])
   const [sidebarOpen, setSidebarOpen]           = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [historial, setHistorial] = useState<HistorialItem[]>([])
+  const [history, setHistory]     = useState<HistoryItem[]>([])
   const [monthlyCount, setMonthlyCount] = useState(0)
   const [activeId, setActiveId]   = useState<string | null>(null)
   const [user, setUser]           = useState<User | null>(null)
@@ -149,16 +149,16 @@ export default function AnalizadorPage() {
       setUser(u)
       setAuthLoading(false)
       if (u) {
-        const server = await loadUserHistorialFromFirestore(u.uid)
-        const local  = readHistorial()
+        const server = await loadUserHistoryFromFirestore(u.uid)
+        const local  = readHistory()
         // Local items come first so their full `result` field wins deduplication
         const merged = [...local, ...server]
           .filter((item, idx, arr) => arr.findIndex(h => h.id === item.id) === idx)
           .slice(0, MAX_HIST)
-        setHistorial(merged)
-        writeHistorial(merged)
+        setHistory(merged)
+        writeHistory(merged)
       } else {
-        setHistorial(readHistorial())
+        setHistory(readHistory())
       }
     })
     return unsub
@@ -178,7 +178,7 @@ export default function AnalizadorPage() {
   function addLog(line: string) { setLogLines(prev => [...prev, line]) }
 
   const loadSharedAnalysis = useCallback(async (id: string) => {
-    const cached = readHistorial().find(h => h.id === id)
+    const cached = readHistory().find(h => h.id === id)
     if (cached) {
       setResult(cached.result); setResultId(id); setUrl(cached.url); setActiveId(id); setPhase('done')
       return
@@ -187,7 +187,7 @@ export default function AnalizadorPage() {
     try {
       const snap = await getDoc(fsDoc(db, 'analisis', id))
       if (snap.exists()) {
-        const data = snap.data() as AnalisisResult
+        const data = snap.data() as AnalysisResult
         setResult(data); setResultId(id); setUrl(data.url); setActiveId(id); setPhase('done')
       } else { setError('Análisis no encontrado.'); setPhase('error') }
     } catch { setError('No se pudo cargar el análisis.'); setPhase('error') }
@@ -204,7 +204,7 @@ export default function AnalizadorPage() {
 
   async function handleSignOut() {
     await signOut(auth)
-    setHistorial(readHistorial())
+    setHistory(readHistory())
   }
 
   async function handleAnalyze() {
@@ -252,10 +252,16 @@ export default function AnalizadorPage() {
         const psd = psiRes.value
         addLog(`✓ PageSpeed: Desktop ${psd.desktopScore}  Mobile ${psd.mobileScore}`)
         const avg = Math.round((psd.mobileScore + psd.desktopScore) / 2)
-        data.secciones.velocidadPagina.puntuacion = avg
-        data.secciones.velocidadPagina.estado     = scoreLabel(avg) as typeof data.secciones.velocidadPagina.estado
-        data.secciones.velocidadPagina.detalles   = { desktop: psd.desktopScore, mobile: psd.mobileScore }
+        data.sections.pageSpeed.score   = avg
+        data.sections.pageSpeed.status  = scoreLabel(avg) as typeof data.sections.pageSpeed.status
+        data.sections.pageSpeed.details = { desktop: psd.desktopScore, mobile: psd.mobileScore }
         data.pageSpeedData = psd
+
+        // Recalculate general score now that pageSpeed has real data
+        const scores = Object.values(data.sections).map(s => s.score)
+        const recalc = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+        data.overallScore = recalc
+        data.label = scoreLabel(recalc)
       } else {
         addLog('⚠ PageSpeed no disponible — usando estimación IA')
       }
@@ -283,16 +289,16 @@ export default function AnalizadorPage() {
       const newCount = incrementMonthlyCount()
       setMonthlyCount(newCount)
 
-      const item: HistorialItem = {
+      const item: HistoryItem = {
         id: docId, url: normalized, hostname: domain,
-        score: data.puntuacionGeneral, label: data.etiqueta,
+        score: data.overallScore, label: data.label,
         createdAt: new Date().toISOString(), result: data,
       }
-      pushHistorial(item)
-      const updated = readHistorial()
-      setHistorial(updated)
+      pushHistory(item)
+      const updated = readHistory()
+      setHistory(updated)
       setResultId(docId); setActiveId(docId)
-      if (user) saveUserHistorialToFirestore(user.uid, updated).catch(() => {})
+      if (user) saveUserHistoryToFirestore(user.uid, updated).catch(() => {})
 
       addLog('> Renderizando resultados...')
       setResult(data)
@@ -312,7 +318,7 @@ export default function AnalizadorPage() {
     setTimeout(() => inputRef.current?.focus(), 50)
   }
 
-  async function handleHistorialClick(item: HistorialItem) {
+  async function handleHistoryClick(item: HistoryItem) {
     setSidebarOpen(false)
     if (item.result) {
       setResult(item.result); setResultId(item.id); setUrl(item.url)
@@ -325,15 +331,24 @@ export default function AnalizadorPage() {
     try {
       const snap = await getDoc(fsDoc(db, 'analisis', item.id))
       if (snap.exists()) {
-        const data = snap.data() as AnalisisResult
+        const data = snap.data() as AnalysisResult
         // Persist locally so next click is instant
-        const full: HistorialItem = { ...item, result: data }
-        pushHistorial(full)
-        setHistorial(readHistorial())
+        const full: HistoryItem = { ...item, result: data }
+        pushHistory(full)
+        setHistory(readHistory())
         setResult(data); setResultId(item.id); setUrl(item.url); setActiveId(item.id); setPhase('done')
         window.history.replaceState({}, '', `/analizador?id=${item.id}`)
       } else { setError('Análisis no encontrado.'); setPhase('error') }
     } catch { setError('No se pudo cargar el análisis.'); setPhase('error') }
+  }
+
+  function handleDeleteHistory(e: React.MouseEvent, id: string) {
+    e.stopPropagation()
+    const updated = readHistory().filter(h => h.id !== id)
+    writeHistory(updated)
+    setHistory(updated)
+    if (activeId === id) { setActiveId(null); setResult(null); setPhase('idle') }
+    if (user) saveUserHistoryToFirestore(user.uid, updated).catch(() => {})
   }
 
   async function handleRate(rating: number, feedback: string) {
@@ -396,18 +411,19 @@ export default function AnalizadorPage() {
         <div className="px-4 pb-2">
           <span className="text-[10px] font-mono font-semibold tracking-widest text-zinc-400 uppercase">Análisis recientes</span>
         </div>
-        {historial.length === 0 ? (
+        {history.length === 0 ? (
           <p className="px-4 text-zinc-400 text-[12px] mt-1">Tus análisis aparecerán aquí.</p>
         ) : (
-          historial.map((item) => {
+          history.map((item) => {
             const isActive = activeId === item.id
             const date = new Date(item.createdAt).toLocaleDateString('es-MX', { month: 'short', day: 'numeric' })
             const itemScoreColor = scoreToColor(item.score)
             return (
-              <button key={item.id} onClick={() => handleHistorialClick(item)}
-                className={`w-full flex items-center gap-3 px-3 py-3 mx-1 rounded-xl text-left transition-colors ${
+              <div key={item.id}
+                className={`group relative w-full flex items-center gap-3 px-3 py-3 mx-1 rounded-xl text-left transition-colors cursor-pointer ${
                   isActive ? 'bg-teal-50 border border-teal-200' : 'hover:bg-zinc-50'
-                }`}>
+                }`}
+                onClick={() => handleHistoryClick(item)}>
                 <div className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-[13px] font-black text-white"
                   style={{ backgroundColor: itemScoreColor }}>
                   {item.score}
@@ -419,11 +435,19 @@ export default function AnalizadorPage() {
                   <div className="text-[11px] text-zinc-400">{date} · {item.label}</div>
                 </div>
                 {!item.result && (
-                  <svg className="w-3 h-3 text-zinc-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3 h-3 text-zinc-300 flex-shrink-0 group-hover:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
                   </svg>
                 )}
-              </button>
+                <button
+                  onClick={(e) => handleDeleteHistory(e, item.id)}
+                  className="opacity-0 group-hover:opacity-100 flex-shrink-0 p-1 rounded-md text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                  title="Eliminar">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
             )
           })
         )}
@@ -581,7 +605,7 @@ export default function AnalizadorPage() {
                       con MOLE <span className="text-gradient-teal">IA ENGINEERING</span>
                     </h1>
                     <p className="text-zinc-500 text-[15px] leading-relaxed max-w-lg mt-1">
-                      Reporte de Optimización de Tasa de Conversión (CRO): Auditoría de 
+                      Reporte de Optimización de Tasa de Conversión (CRO): Auditoría de
                       PageSpeed Insights, Diagnóstico de Core Web Vitals y Plan de Acción SEO Técnico.
                     </p>
                   </div>
