@@ -1,4 +1,4 @@
-import { AnalysisResult } from '@/types/analyzer'
+import { AnalysisResult, PageSpeedData } from '@/types/analyzer'
 
 // In production (Hostinger): no env vars set -> requests go through /api/ai.php (PHP proxy with server-side keys)
 // In local dev: set NEXT_PUBLIC_AI_API_URL + NEXT_PUBLIC_AI_API_KEY in .env.local to hit OpenRouter directly
@@ -6,11 +6,21 @@ const AI_URL  = process.env.NEXT_PUBLIC_AI_API_URL ?? '/api/ai.php'
 const MODEL   = process.env.NEXT_PUBLIC_AI_MODEL   ?? 'xiaomi/mimo-v2-pro'
 const API_KEY = process.env.NEXT_PUBLIC_AI_API_KEY ?? process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
 
-function buildPrompt(url: string, content: string): string {
+function buildPrompt(url: string, content: string, psi?: PageSpeedData | null): string {
+  const psiBlock = psi ? `
+DATOS REALES DE PAGESPEED INSIGHTS (Google Lighthouse — usa estos valores, no inferas velocidad):
+- Score Desktop: ${psi.desktopScore}/100  |  Score Mobile: ${psi.mobileScore}/100
+- FCP:  Desktop ${psi.desktop.fcp}  |  Mobile ${psi.mobile.fcp}
+- LCP:  Desktop ${psi.desktop.lcp}  |  Mobile ${psi.mobile.lcp}
+- CLS:  Desktop ${psi.desktop.cls}  |  Mobile ${psi.mobile.cls}
+- TBT:  Desktop ${psi.desktop.tbt}  |  Mobile ${psi.mobile.tbt}
+- SI:   Desktop ${psi.desktop.si}   |  Mobile ${psi.mobile.si}
+` : ''
+
   return `Eres un experto en Optimizacion de Tasa de Conversion (CRO) con mas de 10 anos analizando landing pages B2B y B2C. Analiza el contenido de esta landing page y devuelve un reporte exhaustivo en espanol.
 
 URL analizada: ${url}
-
+${psiBlock}
 CONTENIDO DE LA PAGINA (markdown extraido):
 ---
 ${content.slice(0, 12000)}
@@ -25,11 +35,11 @@ Usa este contexto en observation para no asumir credito, suscripcion, trial o Sa
 
 INSTRUCCIONES CRITICAS:
 1. Responde UNICAMENTE con JSON valido puro. Sin markdown, sin backticks, sin texto adicional.
-2. En "executiveSummary", empieza con el error mas grave. No digas "La pagina esta bien".
+2. En "executiveSummary", da un diagnostico directo en 2-3 oraciones: identifica el problema principal que mas esta costando conversiones, menciona brevemente lo que si funciona, y termina con lo que hay que priorizar. No uses hiperboles ni dramatismo, pero tampoco eufemismos. Si el copy esta centrado en la empresa y no en el cliente, dilo.
 3. Todo el texto del analisis debe estar en ESPANOL.
 4. Se especifico y accionable. Menciona elementos reales del contenido, no genericos.
 5. Los "points" en cada seccion deben ser maximo 3 frases cortas (max 15 palabras cada una).
-6. En secciones con score bajo los points son PROBLEMAS o MEJORAS necesarias.
+6. En secciones con score bajo los points nombran el problema concreto y lo que falta. Son directos: "No hay testimonios con nombre y empresa" es mejor que "Podria considerarse agregar testimonios". Maximo 15 palabras por punto.
 7. En secciones con score alto los points son FORTALEZAS observadas.
 8. improvementIdeas: exactamente 5 ideas ordenadas por prioridad (ALTA primero).
 9. technicalSEO: exactamente 4 problemas tecnicos reales inferidos del contenido.
@@ -100,11 +110,12 @@ Evalua cada criterio como PRESENTE o AUSENTE basandote en el CONCEPTO, no en fra
    - [+20] Legibilidad del texto: El contenido esta organizado en parrafos cortos. No hay bloques densos de texto que requieran zoom o lectura continua.
    - [+15] Sin elementos intrusivos: No hay indicios de popups agresivos, banners superpuestos o videos de reproduccion automatica que degraden la experiencia.
 
-8. **VELOCIDAD DE PAGINA - [Max 100]** (inferida de la complejidad detectada en el contenido)
+8. **VELOCIDAD DE PAGINA - [Max 100]**
+   ${psi ? `USA LOS DATOS REALES DE PAGESPEED PROPORCIONADOS ARRIBA. El score es el promedio de desktop (${psi.desktopScore}) y mobile (${psi.mobileScore}) = ${Math.round((psi.desktopScore + psi.mobileScore) / 2)}. En "details" pon exactamente {"desktop": ${psi.desktopScore}, "mobile": ${psi.mobileScore}}. En "observation" menciona los valores reales de LCP, CLS y TBT para dar un diagnostico concreto.` : `(inferida de la complejidad detectada en el contenido)
    - [+40] Pocos assets pesados: No se detectan iframes multiples, embeds de video sin carga diferida, o scripts de terceros en cantidad.
    - [+35] Imagenes razonables: No hay indicios de imagenes de alta resolucion sin optimizacion o multiples imagenes de gran tamano en la parte superior.
    - [+25] Estructura tecnica simple: La pagina no presenta senales de frameworks muy pesados, exceso de trackers o fuentes externas multiples.
-   Devuelve "details": {"desktop": X, "mobile": Y} donde el score mobile suele ser entre 15 y 25 puntos menor que desktop.
+   Devuelve "details": {"desktop": X, "mobile": Y} donde el score mobile suele ser entre 15 y 25 puntos menor que desktop.`}
 
 
 Devuelve EXACTAMENTE esta estructura JSON:
@@ -253,8 +264,15 @@ function repairTruncatedJson(raw: string): string {
   return s + stack.reverse().join('')
 }
 
-export async function analyzeWithAI(url: string, content: string): Promise<AnalysisResult> {
-  const systemPrompt = 'Actua como un Auditor de Conversion (CRO) cinico y ultra-exigente. Tu estandar es la perfeccion. No regales puntos. Se directo, critico y especifico. No des consejos genericos.'
+const ESTIMATED_CHARS = 40000 // ~10 000 tokens × 4 chars/token
+
+export async function analyzeWithAI(
+  url: string,
+  content: string,
+  psiData?: PageSpeedData | null,
+  onProgress?: (pct: number) => void,
+): Promise<AnalysisResult> {
+  const systemPrompt = 'Eres un consultor senior de Conversion Rate Optimization (CRO) con mas de 10 anos de experiencia trabajando con empresas reales. Tu diagnostico es directo y sin rodeos: nombras los problemas por su nombre, explicas por que importan y dices que hay que hacer. No dramatizas ni usas hiperboles, pero tampoco suavizas la realidad para no incomodar. Si algo no funciona, lo dices claramente. Tu tono es el de un profesional que respeta al cliente lo suficiente como para darle la verdad, no el de un vendedor que quiere caer bien. Se especifico, critico donde corresponde y siempre accionable.'
 
   const res = await fetch(AI_URL, {
     method: 'POST',
@@ -270,12 +288,13 @@ export async function analyzeWithAI(url: string, content: string): Promise<Analy
       model: MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: buildPrompt(url, content) },
+        { role: 'user', content: buildPrompt(url, content, psiData) },
       ],
       max_tokens: 16000,
       temperature: 0,
       top_p: 1,
       seed: 42,
+      stream: true,
       provider: {
         order: ['DeepSeek'],
         allow_fallbacks: false,
@@ -283,39 +302,58 @@ export async function analyzeWithAI(url: string, content: string): Promise<Analy
     }),
   })
 
-  const data = await res.json()
-
   if (!res.ok) {
-    const msg = data?.error?.message ?? data?.error ?? JSON.stringify(data)
+    const errData = await res.json().catch(() => ({}))
+    const msg = errData?.error?.message ?? errData?.error ?? JSON.stringify(errData)
     throw new Error(`Error del modelo: ${msg}`)
   }
 
-  const choice = data.choices?.[0]
-  const finishReason: string = choice?.finish_reason ?? ''
+  // Read SSE stream and accumulate raw text
+  const reader = res.body!.getReader()
+  const decoder = new TextDecoder()
+  let raw = ''
+  let charCount = 0
+  let finishReason = ''
 
-  // Pull raw text — some providers nest it differently
-  const raw: string = choice?.message?.content ?? choice?.text ?? ''
+  outer: while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    for (const line of decoder.decode(value, { stream: true }).split('\n')) {
+      const trimmed = line.trim()
+      if (!trimmed.startsWith('data: ')) continue
+      const payload = trimmed.slice(6)
+      if (payload === '[DONE]') break outer
+      try {
+        const parsed = JSON.parse(payload)
+        const delta: string = parsed.choices?.[0]?.delta?.content ?? ''
+        const fr: string    = parsed.choices?.[0]?.finish_reason ?? ''
+        if (fr) finishReason = fr
+        if (delta) {
+          raw += delta
+          charCount += delta.length
+          onProgress?.(Math.min(Math.round((charCount / ESTIMATED_CHARS) * 100), 99))
+        }
+      } catch { /* malformed SSE line */ }
+    }
+  }
+
+  onProgress?.(100)
 
   if (!raw) {
-    // finish_reason=length means the model ran out of tokens mid-response
     if (finishReason === 'length') {
       throw new Error('La respuesta fue cortada por límite de tokens. Intenta de nuevo o usa un modelo con mayor contexto de salida.')
     }
-    const detail = JSON.stringify(data).slice(0, 400)
-    throw new Error(`La IA no devolvió contenido. Respuesta: ${detail}`)
+    throw new Error('La IA no devolvió contenido.')
   }
 
-  // Warn in console but don't crash — truncated JSON may still be repairable
   if (finishReason === 'length') {
     console.warn('[analyzeWithAI] finish_reason=length — intentando reparar JSON truncado')
   }
 
-  // Normalize: strip markdown code fences models add despite being told not to
   function extractJsonString(s: string): string {
-    // ```json ... ``` or ``` ... ```
     const fenced = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
     if (fenced) return fenced[1].trim()
-    // Bare JSON object anywhere in the string
     const obj = s.match(/\{[\s\S]*\}/)
     return obj ? obj[0] : s
   }
@@ -324,7 +362,6 @@ export async function analyzeWithAI(url: string, content: string): Promise<Analy
   const extracted = extractJsonString(raw)
   candidates.push(extracted)
   candidates.push(repairTruncatedJson(extracted))
-  // Also try from the raw string directly
   const rawObj = raw.match(/\{[\s\S]*\}/)
   if (rawObj) {
     candidates.push(rawObj[0])

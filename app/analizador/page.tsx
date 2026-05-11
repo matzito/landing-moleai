@@ -129,6 +129,7 @@ export default function AnalizadorPage() {
   const [result, setResult]       = useState<AnalysisResult | null>(null)
   const [resultId, setResultId]   = useState<string | null>(null)
   const [logLines, setLogLines]   = useState<string[]>([])
+  const [loadProgress, setLoadProgress] = useState(0)
   const [sidebarOpen, setSidebarOpen]           = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [history, setHistory]     = useState<HistoryItem[]>([])
@@ -138,8 +139,11 @@ export default function AnalizadorPage() {
   const [authLoading, setAuthLoading] = useState(true)
   const [signingIn, setSigningIn] = useState(false)
 
-  const inputRef    = useRef<HTMLInputElement>(null)
-  const terminalRef = useRef<HTMLDivElement>(null)
+  const inputRef       = useRef<HTMLInputElement>(null)
+  const terminalRef    = useRef<HTMLDivElement>(null)
+  const aiStartRef     = useRef<number>(0)
+  // 10 000 tokens ÷ 30 t/s ≈ 333 s for the AI phase (10 % → 90 %)
+  const AI_PHASE_SECS  = 10000 / 30
 
   const analysesLeft = Math.max(0, 3 - monthlyCount)
 
@@ -169,6 +173,18 @@ export default function AnalizadorPage() {
     const id = new URLSearchParams(window.location.search).get('id')
     if (id) loadSharedAnalysis(id)
   }, [])
+
+  // Time-based progress during AI thinking phase (no streaming tokens yet)
+  useEffect(() => {
+    if (phase !== 'ai') return
+    aiStartRef.current = Date.now()
+    const id = setInterval(() => {
+      const elapsed = (Date.now() - aiStartRef.current) / 1000
+      const timePct = 10 + Math.round((elapsed / AI_PHASE_SECS) * 80)
+      setLoadProgress(prev => Math.max(prev, Math.min(timePct, 89)))
+    }, 500)
+    return () => clearInterval(id)
+  }, [phase])
 
   useEffect(() => {
     if (terminalRef.current)
@@ -223,50 +239,60 @@ export default function AnalizadorPage() {
     //   }
     // }
 
-    setPhase('fetch'); setError(null); setLogLines([]); setResult(null); setResultId(null); setActiveId(null)
+    setPhase('fetch'); setError(null); setLogLines([]); setResult(null); setResultId(null); setActiveId(null); setLoadProgress(0)
     window.history.pushState({}, '', '/analizador')
 
     try {
       addLog(`> Iniciando análisis: ${normalized}`)
       addLog('> Conectando con Jina Reader...')
-      const content = await fetchPageContent(normalized)
+      addLog('> Consultando Google PageSpeed Insights...')
+      addLog('  (corriendo en paralelo)')
 
+      const [contentRes, psiRes] = await Promise.allSettled([
+        fetchPageContent(normalized),
+        getPageSpeed(normalized),
+      ])
+
+      if (contentRes.status === 'rejected') throw contentRes.reason
+      const content = contentRes.value
+
+      const psiData = psiRes.status === 'fulfilled' ? psiRes.value : null
+      if (psiData) {
+        addLog(`✓ PageSpeed: Desktop ${psiData.desktopScore}  Mobile ${psiData.mobileScore}`)
+      } else {
+        addLog('⚠ PageSpeed no disponible — la IA estimará velocidad')
+      }
+
+      setLoadProgress(5)
       setPhase('extract')
       addLog(`✓ Página obtenida — ${(content.length / 1024).toFixed(1)} KB`)
       addLog('> Preparando contexto...')
 
+      setLoadProgress(10)
       setPhase('ai')
-      addLog('> Enviando a IA via OpenRouter...')
-      addLog('> Consultando Google PageSpeed Insights...')
-      addLog('  (corriendo en paralelo)')
+      addLog('> Enviando a IA via OpenRouter (con datos reales de PageSpeed)...')
 
-      const [aiRes, psiRes] = await Promise.allSettled([
-        analyzeWithAI(normalized, content),
-        getPageSpeed(normalized),
-      ])
+      const data = await analyzeWithAI(normalized, content, psiData, (pct) => {
+        const tokenPct = 10 + Math.round(pct * 0.80)
+        setLoadProgress(prev => Math.max(prev, Math.min(tokenPct, 89)))
+      })
 
-      if (aiRes.status === 'rejected') throw aiRes.reason
-      const data = aiRes.value
-
-      if (psiRes.status === 'fulfilled') {
-        const psd = psiRes.value
-        addLog(`✓ PageSpeed: Desktop ${psd.desktopScore}  Mobile ${psd.mobileScore}`)
-        const avg = Math.round((psd.mobileScore + psd.desktopScore) / 2)
+      // Always attach real PSI data object for the metrics table
+      if (psiData) {
+        data.pageSpeedData = psiData
+        // Ensure scores match real data
+        const avg = Math.round((psiData.mobileScore + psiData.desktopScore) / 2)
         data.sections.pageSpeed.score   = avg
         data.sections.pageSpeed.status  = scoreLabel(avg) as typeof data.sections.pageSpeed.status
-        data.sections.pageSpeed.details = { desktop: psd.desktopScore, mobile: psd.mobileScore }
-        data.pageSpeedData = psd
-
-        // Recalculate general score now that pageSpeed has real data
+        data.sections.pageSpeed.details = { desktop: psiData.desktopScore, mobile: psiData.mobileScore }
         const scores = Object.values(data.sections).map(s => s.score)
-        const recalc = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-        data.overallScore = recalc
-        data.label = scoreLabel(recalc)
-      } else {
-        addLog('⚠ PageSpeed no disponible — usando estimación IA')
+        data.overallScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+        data.label = scoreLabel(data.overallScore)
       }
+
       addLog('✓ Análisis IA completo')
 
+      setLoadProgress(92)
       setPhase('parse')
       addLog('> Guardando reporte...')
 
@@ -300,11 +326,16 @@ export default function AnalizadorPage() {
       setResultId(docId); setActiveId(docId)
       if (user) saveUserHistoryToFirestore(user.uid, updated).catch(() => {})
 
+      setLoadProgress(100)
       addLog('> Renderizando resultados...')
       setResult(data)
       setPhase('done')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error desconocido'
+      const raw = err instanceof Error ? err.message : 'Error desconocido'
+      const isSuspended = /suspended|network/i.test(raw) || raw === 'Failed to fetch'
+      const msg = isSuspended
+        ? 'La pestaña fue suspendida por el navegador durante el análisis. Mantén la pestaña activa y vuelve a intentarlo.'
+        : raw
       addLog(`✗ ${msg}`)
       setError(msg)
       setPhase('error')
@@ -677,6 +708,19 @@ export default function AnalizadorPage() {
 
                   {/* Steps card */}
                   <div className="bg-white rounded-2xl border border-zinc-200 border-outer overflow-hidden">
+                    {/* Global progress bar */}
+                    <div className="px-5 pt-4 pb-3 border-b border-zinc-100">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px] font-mono text-zinc-400">Progreso del análisis</span>
+                        <span className="text-[13px] font-black font-mono text-teal-600 tabular-nums">{loadProgress}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-2 bg-teal-500 rounded-full transition-all duration-300"
+                          style={{ width: `${loadProgress}%` }}
+                        />
+                      </div>
+                    </div>
                     <div className="px-5 py-4 border-b border-zinc-100 flex flex-col gap-3">
                       {STEPS.map(step => {
                         const si = phaseIndex(step.phase)
@@ -698,7 +742,7 @@ export default function AnalizadorPage() {
                                 <div className="w-4 h-4 rounded-full border-2 border-zinc-200"/>
                               )}
                             </div>
-                            <div className="flex flex-col gap-0.5">
+                            <div className="flex flex-col gap-0.5 flex-1">
                               <span className={`text-[13px] font-medium ${
                                 done ? 'text-zinc-400 line-through' : active ? 'text-zinc-800' : 'text-zinc-300'
                               }`}>
