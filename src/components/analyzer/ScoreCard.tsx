@@ -32,7 +32,7 @@ export default function ScoreCard({ title, icon, data, description }: ScoreCardP
   const isPositive = data.score >= 70
 
   return (
-    <div className="glass-card rounded-2xl flex flex-col h-full">
+    <div className="glass-card rounded-2xl flex flex-col">
 
       {/* Top: label + score + icon */}
       <div className="px-5 pt-5 pb-4">
@@ -75,8 +75,8 @@ export default function ScoreCard({ title, icon, data, description }: ScoreCardP
       <div className="border-t border-zinc-100 mx-5" />
 
       {/* Points as rows */}
-      <div className="flex flex-col divide-y divide-zinc-100 flex-1 pb-3">
-        {data.points.map((p, i) => (
+      <div className="flex flex-col divide-y divide-zinc-100">
+        {(data.points ?? []).map((p, i) => (
           <div key={i} className="flex items-start gap-3 px-5 py-2">
             {isPositive ? (
               <svg className="w-3.5 h-3.5 text-teal-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,6 +90,12 @@ export default function ScoreCard({ title, icon, data, description }: ScoreCardP
         ))}
       </div>
 
+      {/* AI observation */}
+      {data.observation && (
+        <div className="mt-3 mx-5 mb-4 border-t border-zinc-300 pt-3">
+          <p className="text-[13px] text-gray-600 leading-relaxed">{data.observation}</p>
+        </div>
+      )}
 
     </div>
   )
