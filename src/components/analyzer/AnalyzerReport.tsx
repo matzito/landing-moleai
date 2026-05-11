@@ -460,9 +460,9 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                         { label: 'PERSONA',   value: result.persona },
                         { label: 'INDUSTRIA', value: result.industria },
                       ].map(m => (
-                        <span key={m.label} className="pdf-meta-pill bg-zinc-100 rounded-full px-2.5 py-1 text-[12px]">
+                        <span key={m.label} className="pdf-meta-pill bg-zinc-100 rounded-full px-3 py-1.5 text-[14px]">
                           <span className="font-bold text-gray-900 mr-1">{m.label}:</span>
-                          <span className="text-gray-900">{m.value}</span>
+                          <span className="text-gray-700">{m.value}</span>
                         </span>
                       ))}
                     </div>
@@ -477,7 +477,7 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                         <span className="text-green-600 font-black text-[11px] tracking-widest uppercase">Fortalezas</span>
                       </div>
                       <ul className="flex flex-col divide-y divide-zinc-100">
-                        {result.strengths.map((f, i) => (
+                        {(result.strengths ?? []).map((f, i) => (
                           <li key={i} className="pdf-list-item flex items-start gap-2.5 px-5 py-3 text-[13px] text-gray-700">
                             <svg className="w-3.5 h-3.5 text-teal-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
@@ -493,7 +493,7 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                         <span className="text-red-600 font-black text-[11px] tracking-widest uppercase">A Mejorar</span>
                       </div>
                       <ul className="flex flex-col divide-y divide-zinc-100">
-                        {result.toImprove.map((m, i) => (
+                        {(result.toImprove ?? []).map((m, i) => (
                           <li key={i} className="pdf-list-item flex items-start gap-2.5 px-5 py-3 text-[13px] text-gray-700">
                             <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1.5" />
                             {m}
@@ -514,37 +514,41 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
           {/* ══ 2. PUNTUACIONES ══ */}
           <section ref={el => { sectionRefs.current.scores = el }}>
             <SectionTitle icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"/></svg>} title="Puntuaciones" subtitle="Evaluadas en más de 60 criterios de conversión" />
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 pdf-scores-grid">
-              {SECTIONS_CONFIG.map((s, i) => (
-                <div key={s.key} className={`pdf-score-page${i > 0 ? ' pdf-score-break' : ''}`}>
-                  <ScoreCard
-                    title={s.title}
-                    icon={SECTION_ICONS[s.key]}
-                    data={result.sections[s.key as keyof typeof result.sections]}
-                    description={s.description}
-                  />
-                  <div className="hidden pdf-score-insight">
-                    <h3 className="pdf-insight-headline">{s.pdfContent.headline}</h3>
-                    <div className="pdf-insight-stats-row">
-                      {s.pdfContent.stats.map(st => (
-                        <div key={st.label} className="pdf-insight-stat">
-                          <span className="pdf-insight-stat-num">{st.number}</span>
-                          <span className="pdf-insight-stat-lbl">{st.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <ul className="pdf-insight-bullets">
-                      {s.pdfContent.bullets.map((b, bi) => <li key={bi}>{b}</li>)}
-                    </ul>
-                    {result.sections[s.key as keyof typeof result.sections]?.observation && (
-                      <div className="pdf-insight-personal">
-                        <div className="pdf-insight-personal-label">Diagnóstico de tu página</div>
-                        <p>{result.sections[s.key as keyof typeof result.sections].observation}</p>
+            <div className="flex flex-col gap-4 pdf-scores-grid">
+              {SECTIONS_CONFIG.map((s, i) => {
+                const sectionData = result.sections?.[s.key as keyof typeof result.sections]
+                if (!sectionData) return null
+                return (
+                  <div key={s.key} className={`pdf-score-page${i > 0 ? ' pdf-score-break' : ''}`}>
+                    <ScoreCard
+                      title={s.title}
+                      icon={SECTION_ICONS[s.key]}
+                      data={sectionData}
+                      description={s.description}
+                    />
+                    <div className="hidden pdf-score-insight">
+                      <h3 className="pdf-insight-headline">{s.pdfContent.headline}</h3>
+                      <div className="pdf-insight-stats-row">
+                        {s.pdfContent.stats.map(st => (
+                          <div key={st.label} className="pdf-insight-stat">
+                            <span className="pdf-insight-stat-num">{st.number}</span>
+                            <span className="pdf-insight-stat-lbl">{st.label}</span>
+                          </div>
+                        ))}
                       </div>
-                    )}
+                      <ul className="pdf-insight-bullets">
+                        {s.pdfContent.bullets.map((b, bi) => <li key={bi}>{b}</li>)}
+                      </ul>
+                      {sectionData.observation && (
+                        <div className="pdf-insight-personal">
+                          <div className="pdf-insight-personal-label">Diagnóstico de tu página</div>
+                          <p>{sectionData.observation}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </section>
 
@@ -634,7 +638,7 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                       </span>
                     </div>
                   )}
-                  {screenshotStatus === 'loaded' && result.detectedSections.map((s, i) => (
+                  {screenshotStatus === 'loaded' && (result.detectedSections ?? []).map((s, i) => (
                     <div key={s.number} className="absolute left-2 flex items-center"
                       style={{ top: SCREENSHOT_TOPS[i] ?? `${8 + i * 12}%` }}>
                       <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white shadow ${
@@ -653,7 +657,7 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                     Mapa de Secciones
                   </div>
                   <div className="divide-y divide-zinc-100">
-                    {result.detectedSections.map(s => (
+                    {(result.detectedSections ?? []).map(s => (
                       <div key={s.number} className="flex items-center gap-4 px-5 py-3.5">
                         <div className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center text-xs font-black flex-shrink-0">
                           {s.number}
@@ -686,7 +690,7 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
             <SectionTitle icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>} title="Ideas de Mejora" subtitle="Ordenadas por prioridad — expande para ver el detalle" />
             <div className="glass-card-clipped rounded-2xl overflow-hidden divide-y divide-zinc-100">
-              {result.improvementIdeas.map((idea, i) => (
+              {(result.improvementIdeas ?? []).map((idea, i) => (
                 <div key={i} className="bg-transparent">
                   <button
                     className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-zinc-50 transition-colors"
@@ -740,7 +744,7 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                 <span className="text-[11px] font-black tracking-widest uppercase">Solución</span>
               </div>
               <div className="divide-y divide-zinc-100">
-                {result.technicalSEO.map((item, i) => (
+                {(result.technicalSEO ?? []).map((item, i) => (
                   <div key={i} className="flex flex-col sm:grid sm:grid-cols-[2fr_120px_3fr] px-5 py-4 gap-2 sm:gap-4 items-start hover:bg-zinc-50 transition-colors">
                     <span className="text-[14px] text-gray-800 font-medium">{item.problem}</span>
                     <span className={`${priorityStyles(item.priority)} text-[11px] font-black px-2.5 py-1 rounded tracking-widest self-start`}>
