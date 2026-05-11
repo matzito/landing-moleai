@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback, ReactElement } from 'react'
-import { AnalisisResult, Prioridad, PageSpeedData } from '@/types/analyzer'
+import { AnalysisResult, Priority, PageSpeedData } from '@/types/analyzer'
 import DonutChart from './DonutChart'
 import ScoreCard from './ScoreCard'
 
@@ -22,7 +22,7 @@ const SECTION_ICONS: Record<string, ReactElement> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25M3 13.5h18M3.75 5.25h16.5A1.5 1.5 0 0121.75 6.75v8.25a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V6.75a1.5 1.5 0 011.5-1.5z"/>
     </svg>
   ),
-  propuestaDeValor: (
+  valueProposition: (
     <svg className={S} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/>
     </svg>
@@ -32,12 +32,12 @@ const SECTION_ICONS: Record<string, ReactElement> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
     </svg>
   ),
-  confianza: (
+  trust: (
     <svg className={S} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
     </svg>
   ),
-  disenoUX: (
+  designUX: (
     <svg className={S} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -48,23 +48,23 @@ const SECTION_ICONS: Record<string, ReactElement> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
     </svg>
   ),
-  experienciaMovil: (
+  mobileExperience: (
     <svg className={S} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/>
     </svg>
   ),
-  velocidadPagina: (
+  pageSpeed: (
     <svg className={S} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/>
     </svg>
   ),
 }
 
-const SECCIONES_CONFIG = [
+const SECTIONS_CONFIG = [
   {
     key: 'topOfPage',
-    titulo: 'Top of Page',
-    descripcion: 'Primera impresión decisiva. El 55% de los visitantes abandona en menos de 15 segundos si el hero no comunica valor inmediato.',
+    title: 'Top of Page',
+    description: 'Primera impresión decisiva. El 55% de los visitantes abandona en menos de 15 segundos si el hero no comunica valor inmediato.',
     pdfContent: {
       headline: 'Tienes 15 segundos para convencer al visitante — o se va sin volver.',
       stats: [
@@ -79,9 +79,9 @@ const SECCIONES_CONFIG = [
     },
   },
   {
-    key: 'propuestaDeValor',
-    titulo: 'Propuesta de Valor',
-    descripcion: 'La razón por la que alguien te elige. Sin diferenciación clara, el precio se convierte en el único criterio de decisión.',
+    key: 'valueProposition',
+    title: 'Propuesta de Valor',
+    description: 'La razón por la que alguien te elige. Sin diferenciación clara, el precio se convierte en el único criterio de decisión.',
     pdfContent: {
       headline: '"Ahorra tiempo" no convierte. "Ahorra 4 horas a la semana" sí.',
       stats: [
@@ -97,8 +97,8 @@ const SECCIONES_CONFIG = [
   },
   {
     key: 'copywriting',
-    titulo: 'Copywriting',
-    descripcion: 'Las palabras que convierten. Un copy orientado al cliente puede incrementar conversiones hasta un 300% frente a uno corporativo.',
+    title: 'Copywriting',
+    description: 'Las palabras que convierten. Un copy orientado al cliente puede incrementar conversiones hasta un 300% frente a uno corporativo.',
     pdfContent: {
       headline: 'El copy corporativo describe tu producto. El copy orientado al resultado vende lo que cambia.',
       stats: [
@@ -113,9 +113,9 @@ const SECCIONES_CONFIG = [
     },
   },
   {
-    key: 'confianza',
-    titulo: 'Confianza y Credibilidad',
-    descripcion: 'El 92% de los compradores lee reseñas antes de decidir. Sin prueba social verificable, los visitantes no avanzan al siguiente paso.',
+    key: 'trust',
+    title: 'Confianza y Credibilidad',
+    description: 'El 92% de los compradores lee reseñas antes de decidir. Sin prueba social verificable, los visitantes no avanzan al siguiente paso.',
     pdfContent: {
       headline: 'Una barra de logos dice "otros nos usan". Un caso de éxito dice "aquí está lo que cambió para ellos".',
       stats: [
@@ -130,9 +130,9 @@ const SECCIONES_CONFIG = [
     },
   },
   {
-    key: 'disenoUX',
-    titulo: 'Diseño & UX',
-    descripcion: 'La experiencia visual guía la decisión. Un diseño confuso aumenta el rebote y reduce el tiempo en página significativamente.',
+    key: 'designUX',
+    title: 'Diseño & UX',
+    description: 'La experiencia visual guía la decisión. Un diseño confuso aumenta el rebote y reduce el tiempo en página significativamente.',
     pdfContent: {
       headline: 'El mejor diseño no es el más bonito — es el que lleva al visitante hacia la acción sin que tenga que pensarlo.',
       stats: [
@@ -148,8 +148,8 @@ const SECCIONES_CONFIG = [
   },
   {
     key: 'conversion',
-    titulo: 'Conversión',
-    descripcion: 'La mecánica del cierre. CTAs claros con bajo riesgo percibido son el factor más directo sobre tu tasa de conversión.',
+    title: 'Conversión',
+    description: 'La mecánica del cierre. CTAs claros con bajo riesgo percibido son el factor más directo sobre tu tasa de conversión.',
     pdfContent: {
       headline: 'El 59% de las páginas deja ir a los visitantes que ya casi estaban listos para dar el siguiente paso.',
       stats: [
@@ -164,9 +164,9 @@ const SECCIONES_CONFIG = [
     },
   },
   {
-    key: 'experienciaMovil',
-    titulo: 'Experiencia Móvil',
-    descripcion: 'Más del 60% del tráfico B2B llega desde móvil. Una experiencia degradada en dispositivos móviles pierde la mayoría de tus visitas.',
+    key: 'mobileExperience',
+    title: 'Experiencia Móvil',
+    description: 'Más del 60% del tráfico B2B llega desde móvil. Una experiencia degradada en dispositivos móviles pierde la mayoría de tus visitas.',
     pdfContent: {
       headline: 'Más del 60% de tu tráfico llega desde un celular. ¿Tu página los está convirtiendo o los está perdiendo?',
       stats: [
@@ -181,9 +181,9 @@ const SECCIONES_CONFIG = [
     },
   },
   {
-    key: 'velocidadPagina',
-    titulo: 'Velocidad de Página',
-    descripcion: 'Cada segundo adicional de carga reduce conversiones un 7%. Google penaliza páginas lentas afectando directamente tu visibilidad.',
+    key: 'pageSpeed',
+    title: 'Velocidad de Página',
+    description: 'Cada segundo adicional de carga reduce conversiones un 7%. Google penaliza páginas lentas afectando directamente tu visibilidad.',
     pdfContent: {
       headline: 'Cada segundo de carga adicional le cuesta un 7% de conversiones — y posición en Google.',
       stats: [
@@ -209,7 +209,7 @@ const PSI_METRICS: { key: keyof PageSpeedData['mobile']; label: string; sublabel
 
 const SCREENSHOT_TOPS = ['4%', '16%', '27%', '39%', '52%', '64%', '76%', '88%']
 
-function prioridadStyles(p: Prioridad) {
+function priorityStyles(p: Priority) {
   switch (p) {
     case 'ALTA':  return 'bg-red-600 text-white'
     case 'MEDIA': return 'bg-amber-500 text-white'
@@ -217,8 +217,8 @@ function prioridadStyles(p: Prioridad) {
   }
 }
 
-function estadoDetectadoStyles(estado: string) {
-  switch (estado) {
+function detectedStatusStyles(status: string) {
+  switch (status) {
     case 'presente':        return 'bg-green-500'
     case 'mejorar':         return 'bg-amber-500'
     case 'necesita mejora': return 'bg-red-500'
@@ -242,10 +242,10 @@ function SectionTitle({ icon, title, subtitle }: { icon: ReactElement; title: st
       <h2 className="text-xl sm:text-2xl font-black tracking-tight text-zinc-900 uppercase">{title}</h2>
     </div>
   )
-} 
+}
 
 interface Props {
-  result: AnalisisResult
+  result: AnalysisResult
   onRelaunch: () => void
   resultId?: string
   relaunchesLeft?: number
@@ -302,8 +302,8 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
   })()
 
   const handleCopy = () => {
-    const text = result.ideasMejora
-      .map((i, n) => `${n + 1}. [${i.seccion}] ${i.titulo}\n   ${i.detalle}`)
+    const text = result.improvementIdeas
+      .map((i, n) => `${n + 1}. [${i.section}] ${i.title}\n   ${i.detail}`)
       .join('\n\n')
     navigator.clipboard.writeText(text)
     setCopied(true)
@@ -447,10 +447,10 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                 {/* Dark score card */}
                 <div className="glass-card-clipped rounded-2xl overflow-hidden p-6 flex flex-col items-center justify-center gap-4">
                   <p className="text-[18px] font-black tracking-widest text-gray-700 uppercase">Puntuación</p>
-                  <DonutChart score={result.puntuacionGeneral} etiqueta={result.etiqueta} />
+                  <DonutChart score={result.overallScore} label={result.label} />
                 </div>
 
-                {/* Meta + summary + fortalezas/a mejorar */}
+                {/* Meta + summary + strengths/toImprove */}
                 <div className="pdf-meta-card glass-card-clipped rounded-2xl overflow-hidden flex flex-col">
                   <div className="pdf-meta-section p-6 flex flex-col gap-4 border-b border-zinc-200">
                     <div className="pdf-meta-pills flex flex-wrap gap-2">
@@ -468,7 +468,7 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                     </div>
                   </div>
                   <blockquote className="pdf-summary border-l-4 border-teal-500 pl-4 text-[15px] text-gray-700 leading-relaxed italic p-6">
-                    {result.resumenEjecutivo}
+                    {result.executiveSummary}
                   </blockquote>
                   <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-zinc-200 flex-1 pdf-strengths-grid">
                     <div>
@@ -477,7 +477,7 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                         <span className="text-green-600 font-black text-[11px] tracking-widest uppercase">Fortalezas</span>
                       </div>
                       <ul className="flex flex-col divide-y divide-zinc-100">
-                        {result.fortalezas.map((f, i) => (
+                        {result.strengths.map((f, i) => (
                           <li key={i} className="pdf-list-item flex items-start gap-2.5 px-5 py-3 text-[13px] text-gray-700">
                             <svg className="w-3.5 h-3.5 text-teal-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
@@ -493,7 +493,7 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                         <span className="text-red-600 font-black text-[11px] tracking-widest uppercase">A Mejorar</span>
                       </div>
                       <ul className="flex flex-col divide-y divide-zinc-100">
-                        {result.aMejorar.map((m, i) => (
+                        {result.toImprove.map((m, i) => (
                           <li key={i} className="pdf-list-item flex items-start gap-2.5 px-5 py-3 text-[13px] text-gray-700">
                             <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1.5" />
                             {m}
@@ -515,13 +515,13 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
           <section ref={el => { sectionRefs.current.scores = el }}>
             <SectionTitle icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"/></svg>} title="Puntuaciones" subtitle="Evaluadas en más de 60 criterios de conversión" />
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 pdf-scores-grid">
-              {SECCIONES_CONFIG.map((s, i) => (
+              {SECTIONS_CONFIG.map((s, i) => (
                 <div key={s.key} className={`pdf-score-page${i > 0 ? ' pdf-score-break' : ''}`}>
                   <ScoreCard
-                    titulo={s.titulo}
-                    icono={SECTION_ICONS[s.key]}
-                    datos={result.secciones[s.key as keyof typeof result.secciones]}
-                    descripcion={s.descripcion}
+                    title={s.title}
+                    icon={SECTION_ICONS[s.key]}
+                    data={result.sections[s.key as keyof typeof result.sections]}
+                    description={s.description}
                   />
                   <div className="hidden pdf-score-insight">
                     <h3 className="pdf-insight-headline">{s.pdfContent.headline}</h3>
@@ -536,10 +536,10 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                     <ul className="pdf-insight-bullets">
                       {s.pdfContent.bullets.map((b, bi) => <li key={bi}>{b}</li>)}
                     </ul>
-                    {result.secciones[s.key as keyof typeof result.secciones]?.observacion && (
+                    {result.sections[s.key as keyof typeof result.sections]?.observation && (
                       <div className="pdf-insight-personal">
                         <div className="pdf-insight-personal-label">Diagnóstico de tu página</div>
-                        <p>{result.secciones[s.key as keyof typeof result.secciones].observacion}</p>
+                        <p>{result.sections[s.key as keyof typeof result.sections].observation}</p>
                       </div>
                     )}
                   </div>
@@ -634,13 +634,13 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                       </span>
                     </div>
                   )}
-                  {screenshotStatus === 'loaded' && result.seccionesDetectadas.map((s, i) => (
-                    <div key={s.numero} className="absolute left-2 flex items-center"
+                  {screenshotStatus === 'loaded' && result.detectedSections.map((s, i) => (
+                    <div key={s.number} className="absolute left-2 flex items-center"
                       style={{ top: SCREENSHOT_TOPS[i] ?? `${8 + i * 12}%` }}>
                       <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white shadow ${
-                        s.estado === 'presente' ? 'bg-green-500' : s.estado === 'mejorar' ? 'bg-amber-500' : 'bg-red-500'
+                        s.status === 'presente' ? 'bg-green-500' : s.status === 'mejorar' ? 'bg-amber-500' : 'bg-red-500'
                       }`}>
-                        {s.numero}
+                        {s.number}
                       </div>
                     </div>
                   ))}
@@ -653,16 +653,16 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                     Mapa de Secciones
                   </div>
                   <div className="divide-y divide-zinc-100">
-                    {result.seccionesDetectadas.map(s => (
-                      <div key={s.numero} className="flex items-center gap-4 px-5 py-3.5">
+                    {result.detectedSections.map(s => (
+                      <div key={s.number} className="flex items-center gap-4 px-5 py-3.5">
                         <div className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center text-xs font-black flex-shrink-0">
-                          {s.numero}
+                          {s.number}
                         </div>
-                        <span className="flex-1 text-[14px] font-medium text-gray-700">{s.nombre}</span>
+                        <span className="flex-1 text-[14px] font-medium text-gray-700">{s.name}</span>
                         <div className="flex items-center gap-2">
-                          <span className={`w-2.5 h-2.5 rounded-full ${estadoDetectadoStyles(s.estado)}`}/>
+                          <span className={`w-2.5 h-2.5 rounded-full ${detectedStatusStyles(s.status)}`}/>
                           <span className="text-[12px] font-medium text-gray-500">
-                            {s.estado === 'presente' ? 'Presente' : s.estado === 'mejorar' ? 'A mejorar' : 'Necesita mejora'}
+                            {s.status === 'presente' ? 'Presente' : s.status === 'mejorar' ? 'A mejorar' : 'Necesita mejora'}
                           </span>
                         </div>
                       </div>
@@ -686,7 +686,7 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
             <SectionTitle icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>} title="Ideas de Mejora" subtitle="Ordenadas por prioridad — expande para ver el detalle" />
             <div className="glass-card-clipped rounded-2xl overflow-hidden divide-y divide-zinc-100">
-              {result.ideasMejora.map((idea, i) => (
+              {result.improvementIdeas.map((idea, i) => (
                 <div key={i} className="bg-transparent">
                   <button
                     className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-zinc-50 transition-colors"
@@ -695,10 +695,10 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                     <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-sm font-black flex-shrink-0">
                       {i + 1}
                     </div>
-                    <span className="flex-1 text-[14px] font-semibold text-gray-800 leading-snug">{idea.titulo}</span>
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest hidden sm:block mr-3">{idea.seccion}</span>
-                    <span className={`${prioridadStyles(idea.prioridad)} text-[11px] font-black px-2.5 py-1 rounded tracking-widest flex-shrink-0 mr-2`}>
-                      {idea.prioridad}
+                    <span className="flex-1 text-[14px] font-semibold text-gray-800 leading-snug">{idea.title}</span>
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest hidden sm:block mr-3">{idea.section}</span>
+                    <span className={`${priorityStyles(idea.priority)} text-[11px] font-black px-2.5 py-1 rounded tracking-widest flex-shrink-0 mr-2`}>
+                      {idea.priority}
                     </span>
                     <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${expanded === i ? 'rotate-180' : ''}`}
                       fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -707,11 +707,11 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                   </button>
                   {expanded === i && (
                     <div className="px-5 pb-5 pl-[72px] border-t border-zinc-100 pt-3 flex flex-col gap-3">
-                      <p className="text-[13px] text-gray-600 leading-relaxed">{idea.detalle}</p>
-                      {idea.inspiracion && idea.inspiracion.length > 0 && (
+                      <p className="text-[13px] text-gray-600 leading-relaxed">{idea.detail}</p>
+                      {idea.inspiration && idea.inspiration.length > 0 && (
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Inspírate en:</span>
-                          {idea.inspiracion.map(name => (
+                          {idea.inspiration.map(name => (
                             <a key={name}
                               href={`https://www.google.com/search?q=${encodeURIComponent(name + ' landing page')}`}
                               target="_blank" rel="noopener noreferrer"
@@ -740,13 +740,13 @@ export default function AnalyzerReport({ result, onRelaunch, resultId, relaunche
                 <span className="text-[11px] font-black tracking-widest uppercase">Solución</span>
               </div>
               <div className="divide-y divide-zinc-100">
-                {result.seoTecnico.map((item, i) => (
+                {result.technicalSEO.map((item, i) => (
                   <div key={i} className="flex flex-col sm:grid sm:grid-cols-[2fr_120px_3fr] px-5 py-4 gap-2 sm:gap-4 items-start hover:bg-zinc-50 transition-colors">
-                    <span className="text-[14px] text-gray-800 font-medium">{item.problema}</span>
-                    <span className={`${prioridadStyles(item.prioridad)} text-[11px] font-black px-2.5 py-1 rounded tracking-widest self-start`}>
-                      {item.prioridad}
+                    <span className="text-[14px] text-gray-800 font-medium">{item.problem}</span>
+                    <span className={`${priorityStyles(item.priority)} text-[11px] font-black px-2.5 py-1 rounded tracking-widest self-start`}>
+                      {item.priority}
                     </span>
-                    <span className="text-[13px] text-gray-500 leading-relaxed">{item.solucion}</span>
+                    <span className="text-[13px] text-gray-500 leading-relaxed">{item.solution}</span>
                   </div>
                 ))}
               </div>
